@@ -1,4 +1,4 @@
-class AhnAcd
+class AhnQueue
   class RoundRobinMeetme
     include QueueStrategy
 

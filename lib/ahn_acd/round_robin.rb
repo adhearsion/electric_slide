@@ -1,6 +1,6 @@
 require 'thread'
 
-class AhnAcd
+class AhnQueue
   class RoundRobin
     include QueueStrategy
 

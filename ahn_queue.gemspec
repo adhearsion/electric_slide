@@ -1,14 +1,14 @@
 GEM_FILES = %w{
-  ahn_acd.gemspec
-  lib/ahn_acd.rb
-  lib/ahn_acd/queue_strategy.rb
-  lib/ahn_acd/round_robin.rb
-  lib/ahn_acd/round_robin_meetme.rb
-  config/ahn_acd.yml
+  ahn_queue.gemspec
+  lib/ahn_queue.rb
+  lib/ahn_queue/queue_strategy.rb
+  lib/ahn_queue/round_robin.rb
+  lib/ahn_queue/round_robin_meetme.rb
+  config/ahn_queue.yml
 }
 
 Gem::Specification.new do |s|
-  s.name = "ahn_acd"
+  s.name = "ahn_queue"
   s.version = "0.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
   s.files = GEM_FILES
 
   s.has_rdoc = true
-  s.homepage = "http://github.com/adhearsion/ahn_acd"
+  s.homepage = "http://github.com/adhearsion/ahn_queue"
   s.require_paths = ["lib"]
   s.rubygems_version = "1.2.0"
   s.summary = "Automatic Call Distributor for Adhearsion"

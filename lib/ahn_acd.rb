@@ -2,7 +2,7 @@
 #end
 #
 #initialization do
-#  COMPONENTS.ahn_acd[:queues].each do |q|
+#  COMPONENTS.ahn_queue[:queues].each do |q|
 #    AhnQueue.create q[:name], q[:queue_type], q[:agent_type]
 #  end
 #end

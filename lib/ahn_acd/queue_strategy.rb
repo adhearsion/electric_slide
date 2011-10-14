@@ -1,6 +1,6 @@
 require 'countdownlatch'
 
-class AhnAcd
+class AhnQueue
   module QueueStrategy
     def wrap_call(call)
       QueuedCall.new(call) unless call.respond_to?(:queued_time)
