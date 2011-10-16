@@ -31,53 +31,33 @@ class AhnQueue
     instance.send method, *args, &block
   end
 
-  class QueuedCall
-    attr_accessor :call, :queued_time
-
-    def initialize(call)
-      @call = call
-      @queued_time = Time.now
-    end
-
-    def hold
-      call.execute 'StartMusicOnHold'
-      @latch = CountDownLatch.new 1
-      @latch.wait
-      call.execute 'StopMusicOnHold'
-    end
-
-    def make_ready!
-      @latch.countdown!
-    end
-  end
-
-  class Agent
-    def work(agent_call)
-      loop do
-        agent_call.execute 'Bridge', @queue.next_call
-      end
-    end
-  end
-
-  class CalloutAgent
-    def work(agent_channel)
-      @queue.next_call.each do |next_call|
-        next_call.dial agent_channel
-      end
-    end
-  end
-
-  class MeetMeAgent
-    include Agent
-
-    def work(agent_call)
-      loop do
-        agent_call.join agent_conf, @queue.next_call
-      end
-    end
-  end
-
-  class BridgeAgent
-    include Agent
-  end
+#  module Agent
+#    def work(agent_call)
+#      loop do
+#        agent_call.execute 'Bridge', @queue.next_call
+#      end
+#    end
+#  end
+#
+#  class CalloutAgent
+#    def work(agent_channel)
+#      @queue.next_call.each do |next_call|
+#        next_call.dial agent_channel
+#      end
+#    end
+#  end
+#
+#  class MeetMeAgent
+#    include Agent
+#
+#    def work(agent_call)
+#      loop do
+#        agent_call.join agent_conf, @queue.next_call
+#      end
+#    end
+#  end
+#
+#  class BridgeAgent
+#    include Agent
+#  end
 end
