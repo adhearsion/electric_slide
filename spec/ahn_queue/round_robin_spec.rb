@@ -19,6 +19,7 @@ describe AhnQueue::RoundRobin do
   end
 
   it 'should block an agent requesting a call until a call becomes available' do
+    flexmock(@call).should_receive(:make_ready!).once
     agent_thread = Thread.new { @queue.next_call }
 
     # Give the agent thread a chance to block...
