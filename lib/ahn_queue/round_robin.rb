@@ -16,7 +16,7 @@ class AhnQueue
       call = nil
       synchronize do
         @conditional.wait(@mutex) if @queue.length == 0
-        call = @queue.pop
+        call = @queue.shift
       end
 
       call.make_ready!
