@@ -27,6 +27,8 @@ Gem::Specification.new do |s|
   s.summary = "Automatic Call Distributor for Adhearsion"
 
   s.add_runtime_dependency 'adhearsion', ['~> 1.2.0']
+  s.add_development_dependency 'rspec', ['>= 2.5.0']
+  s.add_development_dependency 'flexmock', ['>= 0.9.0']
 
   s.specification_version = 2
 end
