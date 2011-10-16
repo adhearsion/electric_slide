@@ -1,4 +1,5 @@
 $:.push File.join(File.dirname(__FILE__), '..', 'lib')
+Thread.abort_on_exception = true
 
 %w{
   ahn_queue
@@ -12,7 +13,6 @@ $:.push File.join(File.dirname(__FILE__), '..', 'lib')
 
 RSpec.configure do |config|
   config.mock_framework = :flexmock
-  config.filter_run_excluding :ignore => true
   config.filter_run :focus => true
   config.run_all_when_everything_filtered = true
   config.color_enabled = true
