@@ -74,4 +74,23 @@ describe AhnQueue::RoundRobin do
     agent1_thread.kill
     agent2_thread.kill
   end
+
+  it 'should properly enqueue calls and return them in the same order' do
+    call1 = dummy_queued_call
+    call2 = dummy_queued_call
+    call3 = dummy_queued_call
+    threads = {}
+
+    threads[:call1] = Thread.new { @queue.enqueue call1 }
+    sleep 0.5
+    threads[:call2] = Thread.new { @queue.enqueue call2 }
+    sleep 0.5
+    threads[:call3] = Thread.new { @queue.enqueue call3 }
+    sleep 0.5
+
+
+    @queue.next_call.should be call1
+    @queue.next_call.should be call2
+    @queue.next_call.should be call3
+  end
 end
