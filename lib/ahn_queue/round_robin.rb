@@ -1,4 +1,5 @@
 require 'thread'
+require 'ahn_queue/queue_strategy'
 
 class AhnQueue
   class RoundRobin

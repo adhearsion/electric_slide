@@ -1,3 +1,6 @@
+require 'singleton'
+require 'adhearsion/foundation/thread_safety'
+
 #methods_for :dialplan do
 #end
 #
@@ -8,7 +11,7 @@
 #end
 
 class AhnQueue
-  include Singleton
+  include ::Singleton
 
   def initialize
     @queues = {}
