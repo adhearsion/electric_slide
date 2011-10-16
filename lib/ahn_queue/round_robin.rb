@@ -1,5 +1,4 @@
 require 'thread'
-#require 'ahn_queue/queue_strategy'
 require 'ahn_queue'
 
 class AhnQueue

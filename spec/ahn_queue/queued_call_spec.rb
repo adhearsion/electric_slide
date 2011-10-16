@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require 'spec_helper'
 
 describe AhnQueue::QueuedCall do
   it 'should initialize the queued_time to the current time' do

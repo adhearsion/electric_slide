@@ -1,8 +1,4 @@
 require 'spec_helper'
-#require File.join(File.dirname(__FILE__), '..', 'spec_helper')
-
-#class AhnQueue
-#  describe RoundRobin do
 
 describe AhnQueue::RoundRobin do
   def dummy_queued_call
