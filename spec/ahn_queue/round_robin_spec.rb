@@ -13,9 +13,8 @@ describe AhnQueue::RoundRobin do
   end
 
   describe "Queue is empty at start" do
-    pending
-    # subject { AhnQueue::RoundRobin.new }
-    # its(:queue) {should have(0).items }
+    subject { AhnQueue::RoundRobin.new }
+    its(:queue) { should have(0).items }
   end
 
   it 'should properly enqueue a call' do
