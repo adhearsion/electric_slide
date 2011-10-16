@@ -26,4 +26,4 @@ end
 
 component_name = "ahn_queue"
 
-AHN_QUEUE = ComponentTester.new(component_name, File.dirname(__FILE__) + "/../..", "/#{component_name}/lib/#{component_name}.rb")
+AHN_QUEUE = ComponentTester.new(component_name, File.dirname(__FILE__) + "/..", "/lib/#{component_name}.rb")
