@@ -1,10 +1,20 @@
-require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+require 'spec_helper'
+#require File.join(File.dirname(__FILE__), '..', 'spec_helper')
+
+#class AhnQueue
+#  describe RoundRobin do
 
 describe AhnQueue::RoundRobin do
   before :each do
     @queue = AhnQueue::RoundRobin.new
     @call  = AhnQueue::QueuedCall.new dummy_call
     flexmock(@call).should_receive(:hold).once
+  end
+
+  describe "Queue is empty at start" do
+    pending
+    # subject { AhnQueue::RoundRobin.new }
+    # its(:queue) {should have(0).items }
   end
 
   it 'should properly enqueue a call' do

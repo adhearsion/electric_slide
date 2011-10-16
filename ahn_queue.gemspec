@@ -1,12 +1,3 @@
-GEM_FILES = %w{
-  ahn_queue.gemspec
-  lib/ahn_queue.rb
-  lib/ahn_queue/queue_strategy.rb
-  lib/ahn_queue/round_robin.rb
-  lib/ahn_queue/round_robin_meetme.rb
-  config/ahn_queue.yml
-}
-
 Gem::Specification.new do |s|
   s.name = "ahn_queue"
   s.version = "0.0.1"
@@ -18,7 +9,7 @@ Gem::Specification.new do |s|
   s.description = "Automatic Call Distributor (ACD) for Adhearsion. Currently implements only Round Robin distribution strategies."
   s.email = "dev&adhearsion.com"
 
-  s.files = GEM_FILES
+  s.files = `git ls-files`.split("\n")
 
   s.has_rdoc = true
   s.homepage = "http://github.com/adhearsion/ahn_queue"
@@ -27,6 +18,8 @@ Gem::Specification.new do |s|
   s.summary = "Automatic Call Distributor for Adhearsion"
 
   s.add_runtime_dependency 'adhearsion', ['~> 1.2.0']
+  s.add_runtime_dependency 'countdownlatch'
+  s.add_runtime_dependency 'activesupport'
   s.add_development_dependency 'rspec', ['>= 2.5.0']
   s.add_development_dependency 'flexmock', ['>= 0.9.0']
 

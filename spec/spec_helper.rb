@@ -2,6 +2,8 @@ $:.push File.join(File.dirname(__FILE__), '..', 'lib')
 Thread.abort_on_exception = true
 
 %w{
+  adhearsion
+  adhearsion/component_manager/spec_framework
   ahn_queue
   ahn_queue/queued_call
   ahn_queue/queue_strategy
@@ -21,3 +23,7 @@ end
 def dummy_call
   Object.new
 end
+
+component_name = "ahn_queue"
+
+AHN_QUEUE = ComponentTester.new(component_name, File.dirname(__FILE__) + "/../..", "/#{component_name}/lib/#{component_name}.rb")

@@ -1,9 +1,11 @@
 require 'thread'
-require 'ahn_queue/queue_strategy'
+#require 'ahn_queue/queue_strategy'
+require 'ahn_queue'
 
 class AhnQueue
   class RoundRobin
     include QueueStrategy
+    attr_reader :queue, :conditional
 
     def initialize
       @queue = []
