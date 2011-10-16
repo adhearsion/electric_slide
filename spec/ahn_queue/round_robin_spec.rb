@@ -5,10 +5,15 @@ require 'spec_helper'
 #  describe RoundRobin do
 
 describe AhnQueue::RoundRobin do
+  def dummy_queued_call
+    dqc = AhnQueue::QueuedCall.new dummy_call
+    flexmock(dqc).should_receive(:hold).once
+    flexmock(dqc).should_receive(:make_ready!).once
+    dqc
+  end
+
   before :each do
     @queue = AhnQueue::RoundRobin.new
-    @call  = AhnQueue::QueuedCall.new dummy_call
-    flexmock(@call).should_receive(:hold).once
   end
 
   describe "Queue is empty at start" do
@@ -18,18 +23,20 @@ describe AhnQueue::RoundRobin do
   end
 
   it 'should properly enqueue a call' do
-    @queue.enqueue @call
-    @queue.instance_variable_get(:@queue).first.should be @call
+    call = AhnQueue::QueuedCall.new dummy_call
+    flexmock(call).should_receive(:hold).once
+    @queue.enqueue call
+    @queue.instance_variable_get(:@queue).first.should be call
   end
 
   it 'should return the call object that is passed in' do
-    @queue.enqueue @call
-    flexmock(@call).should_receive(:make_ready!).once
-    @queue.next_call.should be @call
+    call = dummy_queued_call
+    @queue.enqueue call
+    @queue.next_call.should be call
   end
 
   it 'should block an agent requesting a call until a call becomes available' do
-    flexmock(@call).should_receive(:make_ready!).once
+    call = dummy_queued_call
     agent_thread = Thread.new { @queue.next_call }
 
     # Give the agent thread a chance to block...
@@ -39,7 +46,7 @@ describe AhnQueue::RoundRobin do
     waiters = condvar.instance_variable_get(:@waiters)
     waiters.count.should == 1
 
-    @queue.enqueue @call
+    @queue.enqueue call
 
     # Give the agent thread a chance to retrieve the call...
     sleep 0.5
@@ -48,6 +55,7 @@ describe AhnQueue::RoundRobin do
   end
 
   it 'should unblock only one agent per call entering the queue' do
+    call = dummy_queued_call
     agent1_thread = Thread.new { @queue.next_call }
     agent2_thread = Thread.new { @queue.next_call }
 
@@ -58,8 +66,7 @@ describe AhnQueue::RoundRobin do
     waiters = condvar.instance_variable_get(:@waiters)
     waiters.count.should == 2
 
-    flexmock(@call).should_receive(:make_ready!).once
-    @queue.enqueue @call
+    @queue.enqueue call
 
     # Give the agent thread a chance to retrieve the call...
     sleep 0.5
