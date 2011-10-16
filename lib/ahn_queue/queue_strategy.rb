@@ -1,5 +1,3 @@
-require 'countdownlatch'
-
 class AhnQueue
   module QueueStrategy
     def wrap_call(call)

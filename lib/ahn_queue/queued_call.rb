@@ -1,3 +1,5 @@
+require 'countdownlatch'
+
 class AhnQueue
   class QueuedCall
     attr_accessor :call, :queued_time
