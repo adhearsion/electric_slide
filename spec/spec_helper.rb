@@ -3,11 +3,10 @@ Thread.abort_on_exception = true
 
 %w{
   adhearsion
-  adhearsion/component_manager/spec_framework
-  ahn_queue
-  ahn_queue/queued_call
-  ahn_queue/queue_strategy
-  ahn_queue/round_robin
+  adhearsion/plugin/queue
+  adhearsion/plugin/queue/queued_call
+  adhearsion/plugin/queue/queue_strategy
+  adhearsion/plugin/queue/round_robin
   rspec/core
   flexmock
   flexmock/rspec
@@ -24,6 +23,3 @@ def dummy_call
   Object.new
 end
 
-component_name = "ahn_queue"
-
-AHN_QUEUE = ComponentTester.new(component_name, File.dirname(__FILE__) + "/..", "/lib/#{component_name}.rb")
