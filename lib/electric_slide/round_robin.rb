@@ -15,9 +15,9 @@ class ElectricSlide
     def next_call
       call = nil
       synchronize do
-        @agents_waiting << caller
+        @agents_waiting << Thread.current
         @conditional.wait(@mutex) if @queue.length == 0
-        @agents_waiting.delete caller
+        @agents_waiting.delete Thread.current
         call = @queue.shift
       end
 
