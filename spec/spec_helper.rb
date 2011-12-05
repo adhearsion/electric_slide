@@ -3,10 +3,10 @@ Thread.abort_on_exception = true
 
 %w{
   adhearsion
-  adhearsion/plugin/queue
-  adhearsion/plugin/queue/queued_call
-  adhearsion/plugin/queue/queue_strategy
-  adhearsion/plugin/queue/round_robin
+  electric_slide
+  electric_slide/queued_call
+  electric_slide/queue_strategy
+  electric_slide/round_robin
   rspec/core
   flexmock
   flexmock/rspec

@@ -1,5 +1,5 @@
 require 'thread'
-require 'adhearsion/plugin/queue/queue_strategy'
+require 'electric_slide/queue_strategy'
 
 class ElectricSlide
   class RoundRobin
