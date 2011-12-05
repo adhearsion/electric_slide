@@ -1,10 +1,10 @@
 require 'spec_helper'
 
-describe Adhearsion::Plugin::Queue::QueuedCall do
+describe ElectricSlide::QueuedCall do
   it 'should initialize the queued_time to the current time' do
     now = Time.now
     flexmock(Time).should_receive(:now).once.and_return now
-    qcall = Adhearsion::Plugin::Queue::QueuedCall.new dummy_call
+    qcall = ElectricSlide::QueuedCall.new dummy_call
     qcall.instance_variable_get(:@queued_time).should == now
   end
 
@@ -13,7 +13,7 @@ describe Adhearsion::Plugin::Queue::QueuedCall do
     queued_caller = dummy_call
     flexmock(queued_caller).should_receive(:execute).once.with('StartMusicOnHold')
     flexmock(queued_caller).should_receive(:execute).once.with('StopMusicOnHold')
-    qcall = Adhearsion::Plugin::Queue::QueuedCall.new queued_caller
+    qcall = ElectricSlide::QueuedCall.new queued_caller
 
     # Place the call on hold and wait for it to enqueue
     Thread.new { qcall.hold }
@@ -28,7 +28,7 @@ describe Adhearsion::Plugin::Queue::QueuedCall do
     queued_caller = dummy_call
     flexmock(queued_caller).should_receive(:execute).once.with('StartMusicOnHold')
     flexmock(queued_caller).should_receive(:execute).once.with('StopMusicOnHold')
-    qcall = Adhearsion::Plugin::Queue::QueuedCall.new queued_caller
+    qcall = ElectricSlide::QueuedCall.new queued_caller
 
     hold_thread = Thread.new { qcall.hold }
 

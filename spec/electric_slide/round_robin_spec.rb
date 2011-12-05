@@ -1,24 +1,24 @@
 require 'spec_helper'
 
-describe Adhearsion::Plugin::Queue::RoundRobin do
+describe ElectricSlide::RoundRobin do
   def dummy_queued_call
-    dqc = Adhearsion::Plugin::Queue::QueuedCall.new dummy_call
+    dqc = ElectricSlide::QueuedCall.new dummy_call
     flexmock(dqc).should_receive(:hold).once
     flexmock(dqc).should_receive(:make_ready!).once
     dqc
   end
 
   before :each do
-    @queue = Adhearsion::Plugin::Queue::RoundRobin.new
+    @queue = ElectricSlide::RoundRobin.new
   end
 
   describe "Queue is empty at start" do
-    subject { Adhearsion::Plugin::Queue::RoundRobin.new }
+    subject { ElectricSlide::RoundRobin.new }
     its(:queue) { should have(0).items }
   end
 
   it 'should properly enqueue a call' do
-    call = Adhearsion::Plugin::Queue::QueuedCall.new dummy_call
+    call = ElectricSlide::QueuedCall.new dummy_call
     flexmock(call).should_receive(:hold).once
     @queue.enqueue call
     @queue.instance_variable_get(:@queue).first.should be call
