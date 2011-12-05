@@ -37,15 +37,13 @@ describe ElectricSlide::RoundRobin do
     # Give the agent thread a chance to block...
     sleep 0.5
 
-    condvar = @queue.instance_variable_get(:@conditional)
-    waiters = condvar.instance_variable_get(:@waiters)
-    waiters.count.should == 1
+    @queue.agents_waiting.count.should == 1
 
     @queue.enqueue call
 
     # Give the agent thread a chance to retrieve the call...
     sleep 0.5
-    waiters.count.should == 0
+    @queue.agents_waiting.count.should == 0
     agent_thread.kill
   end
 
@@ -57,15 +55,13 @@ describe ElectricSlide::RoundRobin do
     # Give the agent threads a chance to block...
     sleep 0.5
 
-    condvar = @queue.instance_variable_get(:@conditional)
-    waiters = condvar.instance_variable_get(:@waiters)
-    waiters.count.should == 2
+    @queue.agents_waiting.count.should == 2
 
     @queue.enqueue call
 
     # Give the agent thread a chance to retrieve the call...
     sleep 0.5
-    waiters.count.should == 1
+    @queue.agents_waiting.count.should == 1
     agent1_thread.kill
     agent2_thread.kill
   end

@@ -4,22 +4,31 @@ require 'electric_slide/queue_strategy'
 class ElectricSlide
   class RoundRobin
     include QueueStrategy
-    attr_reader :queue, :conditional
+    attr_reader :queue
 
     def initialize
       @queue = []
+      @agents_waiting = []
       @conditional = ConditionVariable.new
     end
 
     def next_call
       call = nil
       synchronize do
+        @agents_waiting << caller
         @conditional.wait(@mutex) if @queue.length == 0
+        @agents_waiting.delete caller
         call = @queue.shift
       end
 
       call.make_ready!
       call
+    end
+
+    def agents_waiting
+      synchronize do
+        @agents_waiting.dup
+      end
     end
 
     # TODO: Add mechanism to add calls with higher priority to the front of the queue.
