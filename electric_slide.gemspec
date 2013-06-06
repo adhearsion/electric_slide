@@ -1,3 +1,5 @@
+require 'date'
+
 Gem::Specification.new do |s|
   s.name = "electric_slide"
   s.version = "0.0.1"
