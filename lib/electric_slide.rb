@@ -17,7 +17,7 @@ class ElectricSlide < Adhearsion::Plugin
 
   def create(name, queue_type, agent_type = Agent)
     synchronize do
-      @queues[name] = const_get(queue_type).new unless @queues.has_key?(name)
+      @queues[name] = queue_type.new unless @queues.has_key?(name)
       @queues[name].extend agent_type
     end
   end
