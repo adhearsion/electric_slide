@@ -99,6 +99,15 @@ class WorkTheQueueWithStyle < Adhearsion::CallController
       # Called when the agent has entered the queue and is waiting for a call
     end
 
+    agent.on_logout do
+      # Optional
+      # Can be used to check external presence (like XMPP) and trigger something
+      # to call the agent and add him back to the queue
+      # May also be used to update stats
+      # This block must assume that the call object associated with this
+      # agent is already inactive (hungup)
+    end
+
     SupportQueue.work_queue(agent) # Blocks while agent works the queue
   end
 end
