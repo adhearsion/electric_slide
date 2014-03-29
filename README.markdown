@@ -54,7 +54,7 @@ class EnterTheQueue < Adhearsion::CallController
     end
 
     # Do any post-queue activity here, like possibly a satisfaction survey
-    pass CustomerSatisfactionSurvey
+    invoke CustomerSatisfactionSurvey
 
     say "Goodbye"
   end
