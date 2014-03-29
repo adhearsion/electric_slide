@@ -10,6 +10,7 @@ This library makes a few assumptions:
 * The default strategy for both agents and callers is FIFO - the first to begin waiting is the first to be connected
 * Other (custom) strategies can be implemented by setting `agent_strategy` or `caller_strategy` - see `ElectricSlide::Strategy::Fifo` and `ElectricSlide::Queue#queue_strategy` - this may be useful if you want some kind of special prioritization, for example with VIP callers.
 * For now, all agents must be on the phone. If an agent hangs up, he is removed from the queue
+* Queues will be implemented as a Celluloid Actor, which should protect the call selection strategies against race conditions
 
 TODO:
 * Example for using Matrioska to offer Agents and Callers interactivity while waiting
