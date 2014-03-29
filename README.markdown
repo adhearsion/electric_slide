@@ -16,6 +16,7 @@ TODO:
 * How to handle Agent logout only from the phone?
 * Is there a way to get some kind of default MOH for Callers?
 * Example integrating with external presence events (like XMPP)
+* What other callbacks may be needed on QueuedCall and AgentCall?
 
 Example Queue
 -------------
@@ -29,10 +30,12 @@ class SupportQueue < ElectricSlide::Queue
 
   while_waiting_for_agent do
     # Default block to be looped on queued calls (callers) while waiting for an agent
+    # May be overriden if a callback is supplied on the QueuedCall object
   end
 
   while_waiting_for_calls do
     # Default block to be looped on agent calls while waiting for a caller
+    # May be overriden if a callback is supplied on the AgentCall object
   end
 end
 ```
@@ -48,8 +51,13 @@ class EnterTheQueue < Adhearsion::CallController
     SupportQueue.wait_for_agent(call) do
       # Play hold music or other features until an agent answers
       # This block should loop if necessary
+      # This block overrides the `#while_waiting_for_agent` above
     end
-    
+
+    # Do any post-queue activity here, like possibly a satisfaction survey
+    pass CustomerSatisfactionSurvey
+
+    say "Goodbye"
   end
 end
 ```
