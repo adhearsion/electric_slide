@@ -15,7 +15,6 @@ TODO:
 * Example for using Matrioska to offer Agents and Callers interactivity while waiting
 * How to handle Agent logout only from the phone?
 * Is there a way to get some kind of default MOH for Callers?
-* Example integrating with external presence events (like XMPP)
 * What other callbacks may be needed on QueuedCall and AgentCall?
 
 Example Queue
@@ -105,4 +104,29 @@ class WorkTheQueueWithStyle < Adhearsion::CallController
 end
 ```
 
+
+Example integrating external presence
+-------------------------------------
+
+```Ruby
+Adhearsion::XMPP.register_handlers do
+  client.register_handler(:presence) do |p|
+    case p.state
+      when :available
+        agent = AgentLookup.by_jid p.from # Placeholder - replace with something that gets a voice address
+        call = Adhearsion::OutboundCall.new
+        call[:jid] = p.from
+        call.execute_controller_or_router_on_answer WorkTheQueue
+        call.dial agent
+
+      when :unavailable
+        call = Adhearsion.active_calls.values.detect do |call|
+          call[:jid] = p.from
+        end
+        call.hangup
+      end
+    end
+  end
+end
+```
 
