@@ -1,23 +1,15 @@
-require 'countdownlatch'
+# encoding: utf-8
 
 class ElectricSlide
   class QueuedCall
-    attr_accessor :call, :queued_time
+    attr_reader :call, :wait_time
 
-    def initialize(call)
-      @call = call
-      @queued_time = Time.now
-    end
+    def initialize(queue, call)
+      return self if call.is_a? self.class
 
-    def hold
-      call.execute 'StartMusicOnHold'
-      @latch = CountDownLatch.new 1
-      @latch.wait
-      call.execute 'StopMusicOnHold'
-    end
-
-    def make_ready!
-      @latch.countdown!
+      @queue, @call = queue, call
+      @call.auto_hangup = false
+      @wait_time = Time.now
     end
   end
 end

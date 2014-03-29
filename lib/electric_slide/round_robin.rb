@@ -1,46 +1,45 @@
 require 'thread'
 require 'electric_slide/queue_strategy'
 
-class ElectricSlide
-  class RoundRobin
-    include QueueStrategy
-    attr_reader :queue
+attr_reader :queue
 
-    def initialize
-      @queue = []
-      @agents_waiting = []
-      @conditional = ConditionVariable.new
-    end
+class QueueStrategy
+  def initialize
+    @queue = []
+    @agents_waiting = []
+    @conditional = ConditionVariable.new
+  end
 
-    def next_call
-      call = nil
-      synchronize do
-        @agents_waiting << Thread.current
-        @conditional.wait(@mutex) if @queue.length == 0
-        @agents_waiting.delete Thread.current
-        call = @queue.shift
-      end
-
-      call.make_ready!
-      call
-    end
-
-    def agents_waiting
-      synchronize do
-        @agents_waiting.dup
+  def next_call
+    call = nil
+    synchronize do
+      @agents_waiting << Thread.current
+      @conditional.wait(@mutex) if @queue.length == 0
+      @agents_waiting.delete Thread.current
+      queued_call = @queue.shift
+      until queued_call.call.active?
+        queued_call = @queue.shift
       end
     end
 
-    # TODO: Add mechanism to add calls with higher priority to the front of the queue.
+    call.make_ready!
+    call
+  end
 
-    def enqueue(call)
-      call = wrap_call(call)
-      synchronize do
-        @queue << call
-        @conditional.signal if @queue.length == 1
-      end
-      super
+  def agents_waiting
+    synchronize do
+      @agents_waiting.dup
     end
   end
-end
 
+  # TODO: Add mechanism to add calls with higher priority to the front of the queue.
+
+  def enqueue(call)
+    call = wrap_call(call)
+    synchronize do
+      @queue << call
+      @conditional.signal if @queue.length == 1
+    end
+    super
+  end
+end
