@@ -130,7 +130,7 @@ Adhearsion::XMPP.register_handlers do
 
       when :unavailable
         call = Adhearsion.active_calls.values.detect do |call|
-          call[:jid] = p.from
+          call[:jid] == p.from
         end
         call.hangup
       end
