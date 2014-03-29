@@ -4,9 +4,6 @@ class ElectricSlide
   class Queue
     include Celluloid
 
-    def initialize(name)
-    end
-
     class << self
       def name(name)
         @name = name
@@ -33,6 +30,11 @@ class ElectricSlide
 
       def agent_strategy(strategy = nil)
         @agent_strategy ||= queue_strategy(strategy || :fifo)
+      end
+
+      def method_missing(m, *args, &block)
+        # TODO: How to instantiate the supervised actor?
+        Celluloid::Actor[self.class.underscore.to_sym].send m, *args, &block
       end
     end
 
