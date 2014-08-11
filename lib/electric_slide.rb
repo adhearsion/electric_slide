@@ -12,7 +12,7 @@ class ElectricSlide < Adhearsion::Plugin
   def create(name, queue = nil)
     queue ||= CallQueue.supervise name
 
-    if @queues.has_key?(name)
+    if @queues.key?(name)
       fail "Queue with name #{name} already exists!"
     else
       @queues[name] = queue
@@ -39,4 +39,3 @@ private
     end
   end
 end
-
