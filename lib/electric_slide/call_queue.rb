@@ -160,11 +160,5 @@ class ElectricSlide
     def calls_waiting
       @queue.length
     end
-    class << self
-      # Wrapper method ensures that all methods are sent to the correct actor
-      def method_missing(m, *args, &block)
-        Celluloid::Actor[:call_queue].send m, *args, &block
-      end
-    end
   end
 end
