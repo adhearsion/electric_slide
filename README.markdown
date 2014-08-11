@@ -1,22 +1,21 @@
-Electric Slide - Automatic Call Distribution (ACD) Services for Adhearsion
+Electric Slide - Simple Call Distribution for Adhearsion
 ====================================================================
 
-This library makes a few assumptions:
+This library implements a simple FIFO (First-In, First-Out) call queue for Adhearsion.
 
-* Individual queues will be declared by creating a class that inherits from ElectricSlide::Queue
+To ensure proper operation, a few things are assumed:
+
 * Agents will only be logged into a single queue at a time
+    If you have two types of agents (say "support" and "sales") then you should have two queues, each with their own pool of agents
 * Agent authentication will happen before entering the queue - it is not the queue's concern
-* If you have two types of agents (say "support" and "sales") then you should have two queues, each with their own pool of agents
-* The default strategy for both agents and callers is FIFO - the first to begin waiting is the first to be connected
-* Other (custom) strategies can be implemented by setting `agent_strategy` or `caller_strategy` - see `ElectricSlide::Strategy::Fifo` and `ElectricSlide::Queue#queue_strategy` - this may be useful if you want some kind of special prioritization, for example with VIP callers.
-* For now, all agents must be on the phone. If an agent hangs up, he is removed from the queue
+* The strategy for both agents and callers is FIFO - the first (available) of each type to begin waiting is selected
+* Other (custom) strategies can be implemented by creating custom queue implementations - see below
 * Queues will be implemented as a Celluloid Actor, which should protect the call selection strategies against race conditions
+* When an agent is selected to take a call, the agent is called. For other behaviors, a custom queue must be implemented
 
 TODO:
 * Example for using Matrioska to offer Agents and Callers interactivity while waiting
-* How to handle Agent logout only from the phone?
-* Is there a way to get some kind of default MOH for Callers?
-* What other callbacks may be needed on QueuedCall and AgentCall?
+* How to handle MOH
 
 Example Queue
 -------------
