@@ -10,7 +10,6 @@ require 'bundler/setup'
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new
 
-require 'ci/reporter/rake/rspec'
-task :ci => ['ci:setup:rspec', :spec]
-task :default => :spec
+task ci: ['ci:setup:rspec', :spec]
+task default: :spec
 
