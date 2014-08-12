@@ -33,7 +33,7 @@ class ElectricSlide
   def shutdown_queue(name)
     queue = get_queue name
     queue.terminate
-    @queues.delete queue
+    @queues.delete name
   end
 
   def self.method_missing(method, *args, &block)
