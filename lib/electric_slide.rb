@@ -26,7 +26,7 @@ class ElectricSlide
   end
 
   def get_queue(name)
-    fail "Queue #{name} not found!" unless @queues[name]
+    fail "Queue #{name} not found!" unless @queues.key?(name)
     @queues[name]
   end
 
