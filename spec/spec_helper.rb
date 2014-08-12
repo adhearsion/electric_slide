@@ -13,6 +13,6 @@ RSpec.configure do |config|
 end
 
 def dummy_call
-  Object.new
+  Hash.new
 end
 
