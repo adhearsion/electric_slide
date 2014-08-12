@@ -1,7 +1,12 @@
 # encoding: utf-8
+require 'celluloid'
 require 'singleton'
+%w(
+  call_queue
+  plugin
+).each { |f| require "electric_slide/#{f}" }
 
-class ElectricSlide < Adhearsion::Plugin
+class ElectricSlide
   include Singleton
 
   def initialize
@@ -10,7 +15,7 @@ class ElectricSlide < Adhearsion::Plugin
   end
 
   def create(name, queue = nil)
-    queue ||= CallQueue.supervise name
+    queue ||= CallQueue.supervise
 
     if @queues.key?(name)
       fail "Queue with name #{name} already exists!"
@@ -24,11 +29,9 @@ class ElectricSlide < Adhearsion::Plugin
     @queues[name]
   end
 
-private
-
   def shutdown_queue(name)
     queue = get_queue name
-    queue.shutdown!
+    queue.terminate
     @queues.delete queue
   end
 
