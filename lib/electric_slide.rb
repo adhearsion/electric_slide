@@ -14,8 +14,9 @@ class ElectricSlide
     @queues = {}
   end
 
-  def create(name, queue = nil)
-    queue ||= CallQueue.supervise
+  def create(name, queue_class = nil, *args)
+    queue_class ||= CallQueue
+    queue = queue_class.work *args
 
     if @queues.key?(name)
       fail "Queue with name #{name} already exists!"
