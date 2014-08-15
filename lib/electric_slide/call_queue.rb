@@ -4,9 +4,9 @@ class ElectricSlide
     include Celluloid
 
     def initialize
-      @free_agents = []
-      @agents = []
-      @queue = []
+      @free_agents = [] # Needed to keep track of waiting order
+      @agents = []      # Needed to keep track of global list of agents
+      @queue = []       # Calls waiting for an agent
     end
 
     # Checks whether an agent is available to take a call
