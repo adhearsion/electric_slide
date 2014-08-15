@@ -3,7 +3,6 @@ require 'celluloid'
 require 'singleton'
 %w(
   call_queue
-  plugin
 ).each { |f| require "electric_slide/#{f}" }
 
 class ElectricSlide
