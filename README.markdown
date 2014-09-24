@@ -22,7 +22,7 @@ Example Queue
 
 ```Ruby
 class SupportQueue < ElectricSlide::Queue
-  name "Support Queue"
+  queue_name "Support Queue"
 
   caller_strategy :fifo
   agent_strategy  :fifo

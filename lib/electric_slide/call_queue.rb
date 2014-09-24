@@ -3,6 +3,12 @@ class ElectricSlide
   class CallQueue
     include Celluloid
 
+    @queue_name = 'call queue'
+
+    def self.queue_name(queue_name)
+      @queue_name = queue_name
+    end
+
     def initialize
       @free_agents = [] # Needed to keep track of waiting order
       @agents = []      # Needed to keep track of global list of agents
@@ -162,7 +168,8 @@ class ElectricSlide
     end
 
     def self.work
-      self.supervise
+      self.supervise_as @queue_name
+      Celluloid::Actor[@queue_name]
     end
   end
 end
