@@ -3,6 +3,14 @@ class ElectricSlide
   class CallQueue
     include Celluloid
 
+    # Get/Sets the agent class
+    # @param [Class, Optional] The class of the agent
+    # @return [Class] The class of the agent
+    def self.agent_class(klass = nil)
+      @agent_class = klass if klass.present?
+      @agent_class ||= ElectricSlide::Agent
+    end
+
     def initialize
       @free_agents = [] # Needed to keep track of waiting order
       @agents = []      # Needed to keep track of global list of agents
@@ -46,10 +54,16 @@ class ElectricSlide
     # @param [String] id The ID of the agent to add to the queue
     # @param [Hash] params The agent's details, used for creating a new {Agent} object
     def add_agent(id, params)
-      agent = Agent.new params.merge(id: id)
+      agent = agent_class.new params.merge(id: id)
       @agents << agent unless @agents.include? agent
       @free_agents << agent if agent.presence == :available && !@free_agents.include?(agent)
       check_for_connections
+    end
+
+    # Returns Agent class
+    # @return [Class] class of Agent used by the queue
+    def agent_class
+      self.class.agent_class
     end
 
     # Marks an agent as available to take a call. To be called after an agent completes a call

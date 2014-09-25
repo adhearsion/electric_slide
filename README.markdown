@@ -24,6 +24,8 @@ Example Queue
 class SupportQueue < ElectricSlide::Queue
   name "Support Queue"
 
+  agent_class MyAgent # If you want to use your own Agent class
+
   caller_strategy :fifo
   agent_strategy  :fifo
 
