@@ -2,6 +2,7 @@
 require 'celluloid'
 require 'singleton'
 %w(
+  agent
   call_queue
   plugin
 ).each { |f| require "electric_slide/#{f}" }
