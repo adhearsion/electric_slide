@@ -38,4 +38,9 @@ describe ElectricSlide do
     expect { ElectricSlide.shutdown_queue("does not exist!") }.to raise_error
   end
 
+  it "gets the celluloid named queue before searching the queues array" do
+    ElectricSlide.create :foo
+    expect(Celluloid::Actor).to receive(:[]).with(:foo).and_return :celluloid_queue
+    expect(ElectricSlide.get_queue :foo).to eq :celluloid_queue
+  end
 end

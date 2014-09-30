@@ -26,8 +26,9 @@ class ElectricSlide
   end
 
   def get_queue(name)
-    fail "Queue #{name} not found!" unless @queues.key?(name)
-    @queues[name]
+    queue = Celluloid::Actor[name] || @queues[name]
+    fail "Queue #{name} not found!" unless queue
+    queue
   end
 
   def shutdown_queue(name)
