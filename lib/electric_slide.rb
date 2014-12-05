@@ -15,13 +15,11 @@ class ElectricSlide
   end
 
   def create(name, queue_class = nil, *args)
-    queue_class ||= CallQueue
-    queue = queue_class.work *args
-
     if @queues.key?(name)
       fail "Queue with name #{name} already exists!"
     else
-      @queues[name] = queue
+      queue_class ||= CallQueue
+      @queues[name] = queue_class.work *args
     end
   end
 
