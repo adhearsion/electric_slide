@@ -49,6 +49,7 @@ class ElectricSlide
     # Registers an agent to the queue
     # @param [Agent] agent The agent to be added to the queue
     def add_agent(agent)
+      logger.info "Adding agent #{agent} to the queue"
       @agents << agent unless @agents.include? agent
       @free_agents << agent if agent.presence == :available && !@free_agents.include?(agent)
       check_for_connections
@@ -75,6 +76,7 @@ class ElectricSlide
     # @param [Agent] agent The {Agent} to be removed from the queue
     # @return [Agent, Nil] The Agent object if removed, Nil otherwise
     def remove_agent(agent)
+      logger.info "Removing agent #{agent} from the queue"
       @free_agents.delete agent
       @agents.delete agent
     end
@@ -108,6 +110,7 @@ class ElectricSlide
     # Add a call to the end of the queue, the normal FIFO queue behavior
     # @param [Adhearsion::Call] call Caller to be added to the queue
     def enqueue(call)
+      logger.info "Adding call from #{call.from} to the queue"
       call[:enqueue_time] = Time.now
       @queue << call unless @queue.include? call
 
@@ -117,6 +120,7 @@ class ElectricSlide
     # Remove a waiting call from the queue. Used if the caller hangs up or is otherwise removed.
     # @param [Adhearsion::Call] call Caller to be removed from the queue
     def abandon(call)
+      logger.info "Caller #{call.from} has abandoned the queue"
       @queue.delete call
     end
 
