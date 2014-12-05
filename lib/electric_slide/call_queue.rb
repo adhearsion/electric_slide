@@ -3,6 +3,10 @@ class ElectricSlide
   class CallQueue
     include Celluloid
 
+    def self.work(*args)
+      self.supervise *args
+    end
+
     def initialize
       @free_agents = [] # Needed to keep track of waiting order
       @agents = []      # Needed to keep track of global list of agents
