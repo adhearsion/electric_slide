@@ -1,65 +1,45 @@
+# encoding: utf-8
+require 'celluloid'
 require 'singleton'
-require 'active_support/dependencies/autoload'
-require 'adhearsion/foundation/thread_safety'
+%w(
+  call_queue
+  plugin
+).each { |f| require "electric_slide/#{f}" }
 
-class ElectricSlide < Adhearsion::Plugin
-  extend ActiveSupport::Autoload
-
-  autoload :QueueStrategy
-  autoload :RoundRobin
-  autoload :RoundRobinMeetme
-
+class ElectricSlide
   include Singleton
 
   def initialize
+    @mutex = Mutex.new
     @queues = {}
   end
 
-  def create(name, queue_type, agent_type = Agent)
-    synchronize do
-      @queues[name] = queue_type.new unless @queues.has_key?(name)
-      @queues[name].extend agent_type
+  def create(name, queue_class = nil, *args)
+    queue_class ||= CallQueue
+    queue = queue_class.work *args
+
+    if @queues.key?(name)
+      fail "Queue with name #{name} already exists!"
+    else
+      @queues[name] = queue
     end
   end
 
   def get_queue(name)
-    synchronize do
-      @queues[name]
-    end
+    fail "Queue #{name} not found!" unless @queues.key?(name)
+    @queues[name]
+  end
+
+  def shutdown_queue(name)
+    queue = get_queue name
+    queue.terminate
+    @queues.delete name
   end
 
   def self.method_missing(method, *args, &block)
-    instance.send method, *args, &block
-  end
-
-  module Agent
-    def work(agent_call)
-      loop do
-        agent_call.execute 'Bridge', @queue.next_call
-      end
+    @@mutex ||= Mutex.new
+    @@mutex.synchronize do
+      instance.send method, *args, &block
     end
-  end
-
-  class CalloutAgent
-    def work(agent_channel)
-      @queue.next_call.each do |next_call|
-        next_call.dial agent_channel
-      end
-    end
-  end
-
-  class MeetMeAgent
-    include Agent
-
-    def work(agent_call)
-      loop do
-        agent_call.join agent_conf, @queue.next_call
-      end
-    end
-  end
-
-  class BridgeAgent
-    include Agent
   end
 end
-

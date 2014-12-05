@@ -1,8 +1,11 @@
+# encoding: utf-8
+$:.push File.expand_path("../lib", __FILE__)
+require 'electric_slide/version'
 require 'date'
 
 Gem::Specification.new do |s|
   s.name = "electric_slide"
-  s.version = "0.0.1"
+  s.version = ElectricSlide::VERSION
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Ben Klang"]
@@ -23,7 +26,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'countdownlatch'
   s.add_runtime_dependency 'activesupport'
   s.add_development_dependency 'rspec', ['>= 2.5.0']
-  s.add_development_dependency 'flexmock', ['>= 0.9.0']
   s.add_development_dependency 'ci_reporter'
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'simplecov-rcov'
