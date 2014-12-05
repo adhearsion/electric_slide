@@ -25,7 +25,13 @@ class ElectricSlide
 
   def get_queue(name)
     fail "Queue #{name} not found!" unless @queues.key?(name)
-    @queues[name]
+    queue = @queues[name]
+    if queue.respond_to? :actors
+      # In case we have a Celluloid supervision group, get the current actor
+      queue.actors.first
+    else
+      queue
+    end
   end
 
   def shutdown_queue(name)
