@@ -21,40 +21,32 @@ Example Queue
 -------------
 
 ```Ruby
-class SupportQueue < ElectricSlide::Queue
-  name "Support Queue"
+my_queue = ElectricSlide.create :my_queue
 
-  caller_strategy :fifo
-  agent_strategy  :fifo
-
-  while_waiting_for_agent do
-    # Default block to be looped on queued calls (callers) while waiting for an agent
-    # May be overriden if a callback is supplied on the QueuedCall object
-  end
-
-  while_waiting_for_calls do
-    # Default block to be looped on agent calls while waiting for a caller
-    # May be overriden if a callback is supplied on the AgentCall object
-  end
-end
+# Another way to get a handle on a queue
+ElectricSlide.create :my_queue
+my_queue = ElectricSlide.get_queue :my_queue
 ```
 
 
-Example CallController
-----------------------
+Example CallController for Queued Call
+--------------------------------------
 
 ```Ruby
 class EnterTheQueue < Adhearsion::CallController
   def run
     answer
-    SupportQueue.wait_for_agent(call) do
-      # Play hold music or other features until an agent answers
-      # This block should loop if necessary
-      # This block overrides the `#while_waiting_for_agent` above
+
+    # Play music-on-hold to the caller until joined to an agent
+    # TODO: Create an ElectricSlide helper to wrap up this function
+    # with optional looping of playback
+    player = play 'http://moh-server.example.com/stream.mp3'
+    call.on_joined do
+      player.stop!
     end
 
-    # Do any post-queue activity here, like possibly a satisfaction survey
-    invoke CustomerSatisfactionSurvey
+    ElectricSlide.get_queue(:my_queue).enqueue call
+    # Blocks until call is done talking to the agent
 
     say "Goodbye"
   end
@@ -62,80 +54,28 @@ end
 ```
 
 
-Example Agent Login
--------------------
+Adding an Agent to the Queue
+----------------------------
+
+ElectricSlide expects to be given a objects that quack like an agent. You can use the built-in `ElectricSlide::Agent` class, or you can provide your own.
+
+To add an agent who will receive calls whenever a call is enqueued, do something like this:
 
 ```Ruby
-class WorkTheQueue < Adhearsion::CallController
-  def run
-    answer
-    SupportQueue.work_queue(call) # Blocks while agent works the queue
-    say "Thanks for working the queue. You are logged out. Goodbye."
-  end
-end
+agent = ElectricSlide::Agent.new id: 1, address: 'sip:agent1@example.com', presence: :available
+ElectricSlide.get_queue(:my_queue).add_agent agent
 ```
 
-
-Example Agent Login with Callbacks
-----------------------------------
+To inform the queue that the agent is no longer available you *must* use the ElectricSlide queue interface. /Do not attempt to alter agent objects directly!/
 
 ```Ruby
-class WorkTheQueueWithStyle < Adhearsion::CallController
-  def run
-    answer
-    agent = ElectricSlide::AgentCall.new call
-
-    agent.on_caller do
-      # Optional
-      # Block to execute when agent is selected to take a call
-      # Occurs before the media is bridged
-      # Returning false indicates that the agent cannot take this call
-    end
-
-    agent.on_hold do
-      # Optional 
-      # Play some audio to the agent
-      # Can also be used to update external status trackers
-      # Called when the agent has entered the queue and is waiting for a call
-    end
-
-    agent.on_logout do
-      # Optional
-      # Can be used to check external presence (like XMPP) and trigger something
-      # to call the agent and add him back to the queue
-      # May also be used to update stats
-      # This block must assume that the call object associated with this
-      # agent is already inactive (hungup)
-    end
-
-    SupportQueue.work_queue(agent) # Blocks while agent works the queue
-  end
-end
+ElectricSlide.update_agent 1, presence: offline
 ```
 
-
-Example integrating external presence
--------------------------------------
+If it is more convenient, you may also pass `#update_agent` an Agent-like object:
 
 ```Ruby
-Adhearsion::XMPP.register_handlers do
-  client.register_handler(:presence) do |p|
-    case p.state
-      when :available
-        agent = AgentLookup.by_jid p.from # Placeholder - replace with something that gets a voice address
-        call = Adhearsion::OutboundCall.new
-        call[:jid] = p.from
-        call.execute_controller_or_router_on_answer WorkTheQueue
-        call.dial agent
-
-      when :unavailable
-        call = Adhearsion.active_calls.values.detect do |call|
-          call[:jid] == p.from
-        end
-        call.hangup
-      end
-    end
-  end
-end
+agent = ElectricSlide::Agent.new id:1, address: 'sip:agent1@example.com', presence: :offline
+ElectricSlide.update_agent 1, agent
 ```
 
