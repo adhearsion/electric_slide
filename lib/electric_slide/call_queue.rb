@@ -129,6 +129,14 @@ class ElectricSlide
       agent_call = Adhearsion::OutboundCall.new
       agent_call[:agent]  = agent
       agent_call[:queued_call] = queued_call
+
+      # TODO: Allow executing a call controller here, specified by the agent
+      agent_call.on_answer { agent_call.join queued_call }
+      agent_call.on_unjoined do
+       ignoring_ended_calls { agent_call.hangup }
+       ignoring_ended_calls { queued_call.hangup }
+      end
+
       # TODO: Make configuration option for controller where agent call should be sent
       agent_call.on_end do |end_event|
         logger.info "Call ended, returning agent #{agent.id} to queue"
@@ -163,6 +171,14 @@ class ElectricSlide
     # @return [Fixnum]
     def calls_waiting
       @queue.length
+    end
+
+  private
+    # @private
+    def ignoring_ended_calls
+      yield
+    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
+      # This actor may previously have been shut down due to the call ending
     end
   end
 end
