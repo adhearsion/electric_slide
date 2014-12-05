@@ -135,7 +135,7 @@ class ElectricSlide
       agent_call[:queued_call] = queued_call
 
       # TODO: Allow executing a call controller here, specified by the agent
-      agent_call.on_answer { agent_call.join queued_call }
+      agent_call.on_answer { ignoring_ended_calls { agent_call.join queued_call } }
       agent_call.on_unjoined do
        ignoring_ended_calls { agent_call.hangup }
        ignoring_ended_calls { queued_call.hangup }
