@@ -146,7 +146,7 @@ class ElectricSlide
 
       agent.connect_callback.call self, agent_call, queued_call
 
-      agent_call.dial agent.address
+      agent_call.dial agent.address, agent.dial_options_for(self, queued_call)
     end
 
     # Returns the next waiting caller

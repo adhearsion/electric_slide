@@ -24,5 +24,10 @@ class Agent
     @disconnect_callback = block
   end
 
+  # Called to provide options for calling this agent that are passed to #dial
+  def dial_options_for(queue, queued_call)
+    {}
+  end
+
 end
 
