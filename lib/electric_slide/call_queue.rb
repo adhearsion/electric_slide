@@ -144,7 +144,11 @@ class ElectricSlide
       # TODO: Make configuration option for controller where agent call should be sent
       agent_call.on_end do |end_event|
         logger.info "Call ended, returning agent #{agent.id} to queue"
-        return_agent agent
+
+        # Ensure we don't return an agent that was removed or paused
+        if agent && @agents.include?(agent) && agent.presence == :busy
+          return_agent agent
+        end
 
         agent.callback :disconnect, self, agent_call, queued_call
 
