@@ -121,14 +121,12 @@ class ElectricSlide
     # Connect an {Agent} to a caller
     # @param [Agent] agent Agent to be connected
     # @param [Adhearsion::Call] call Caller to be connected
-    def connect(agent, caller)
-      logger.info "Connecting #{agent} with #{caller.from}"
-
-      metadata = {caller: caller, agent: agent}
+    def connect(agent, queued_call)
+      logger.info "Connecting #{agent} with #{queued_call.from}"
 
       agent_call = Adhearsion::OutboundCall.new
       agent_call[:agent]  = agent
-      agent_call[:caller] = caller
+      agent_call[:queued_call] = queued_call
       # TODO: Make configuration option for controller where agent call should be sent
       agent_call.on_end do |end_event|
         logger.info "Call ended, returning agent #{agent.id} to queue"
@@ -136,7 +134,7 @@ class ElectricSlide
 
         unless [:hungup, :"hangup-command"].include?(end_event.reason)
           logger.warn "Call to agent #{agent.id} ended with #{end_event.reason}, reinserting into queue"
-          priority_enqueue caller if caller.active?
+          priority_enqueue queued_call if queued_call.active?
         end
       end
 
