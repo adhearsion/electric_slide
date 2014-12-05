@@ -47,10 +47,8 @@ class ElectricSlide
     end
 
     # Registers an agent to the queue
-    # @param [String] id The ID of the agent to add to the queue
-    # @param [Hash] params The agent's details, used for creating a new {Agent} object
-    def add_agent(id, params)
-      agent = Agent.new params.merge(id: id)
+    # @param [Agent] agent The agent to be added to the queue
+    def add_agent(agent)
       @agents << agent unless @agents.include? agent
       @free_agents << agent if agent.presence == :available && !@free_agents.include?(agent)
       check_for_connections
