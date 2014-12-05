@@ -166,9 +166,5 @@ class ElectricSlide
     def calls_waiting
       @queue.length
     end
-
-    def self.work
-      self.supervise
-    end
   end
 end
