@@ -145,7 +145,6 @@ class ElectricSlide
       connected = false
       queued_call.on_joined { connected = true }
 
-      # TODO: Make configuration option for controller where agent call should be sent
       agent_call.on_end do |end_event|
         # Ensure we don't return an agent that was removed or paused
         if agent && @agents.include?(agent) && agent.presence == :busy
