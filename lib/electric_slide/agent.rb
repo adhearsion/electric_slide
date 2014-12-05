@@ -12,6 +12,12 @@ class ElectricSlide::Agent
     @presence = opts[:presence]
   end
 
+  def callback(type, *args)
+    callback = instance_variable_get "@#{type}_callback"
+    callback.call if callback && callback.respond_to?(:call)
+  end
+
+
   # Provide a block to be called when this agent is connected to a caller
   # The block will be passed the queue, the agent call and the client call
   def on_connect(&block)
