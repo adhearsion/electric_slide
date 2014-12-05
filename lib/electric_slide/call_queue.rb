@@ -132,11 +132,15 @@ class ElectricSlide
         logger.info "Call ended, returning agent #{agent.id} to queue"
         return_agent agent
 
+        agent.disconnect_callback.call self, agent_call, queued_call
+
         unless [:hungup, :"hangup-command"].include?(end_event.reason)
           logger.warn "Call to agent #{agent.id} ended with #{end_event.reason}, reinserting into queue"
           priority_enqueue queued_call if queued_call.active?
         end
       end
+
+      agent.connect_callback.call self, agent_call, queued_call
 
       agent_call.dial agent.address
     end

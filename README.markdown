@@ -79,3 +79,10 @@ agent = ElectricSlide::Agent.new id:1, address: 'sip:agent1@example.com', presen
 ElectricSlide.update_agent 1, agent
 ```
 
+Custom Agent Behavior
+----------------------------
+
+If you need custom functionality to occur whenever an Agent is selected to take a call, you can use the callbacks on the Agent object:
+
+* `on_connect`
+* `on_disconnect`
