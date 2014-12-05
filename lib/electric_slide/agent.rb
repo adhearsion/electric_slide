@@ -1,5 +1,5 @@
 # encoding: utf-8
-class Agent
+class ElectricSlide::Agent
   attr_accessor :id, :address, :presence, :connect_callback, :disconnect_callback
 
   # @param [Hash] opts Agent parameters
