@@ -141,18 +141,21 @@ class ElectricSlide
        ignoring_ended_calls { queued_call.hangup }
       end
 
+      # Track whether the agent actually talks to the queued_call
+      connected = false
+      queued_call.on_joined { connected = true }
+
       # TODO: Make configuration option for controller where agent call should be sent
       agent_call.on_end do |end_event|
-        logger.info "Call ended, returning agent #{agent.id} to queue"
-
         # Ensure we don't return an agent that was removed or paused
         if agent && @agents.include?(agent) && agent.presence == :busy
+          logger.info "Call ended, returning agent #{agent.id} to queue"
           return_agent agent
         end
 
         agent.callback :disconnect, self, agent_call, queued_call
 
-        unless [:hungup, :"hangup-command"].include?(end_event.reason)
+        unless connected
           logger.warn "Call to agent #{agent.id} ended with #{end_event.reason}, reinserting into queue"
           priority_enqueue queued_call if queued_call.active?
         end
