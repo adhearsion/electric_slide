@@ -138,7 +138,16 @@ class ElectricSlide
       queued_caller_id = queued_call.from
 
       # TODO: Allow executing a call controller here, specified by the agent
-      agent_call.on_answer { ignoring_ended_calls { agent_call.join queued_call } }
+      agent_call.on_answer do
+        begin
+          agent_call.join queued_call
+        rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
+          # Handle these manually because we need to be able to put the agent back into the queue
+          logger.info "Queued call #{queued_caller_id} hung up before agent could join; returning agent #{agent.id} to the queue."
+          conditionally_return_agent agent
+        end
+      end
+
       agent_call.on_unjoined do
        ignoring_ended_calls { agent_call.hangup }
        ignoring_ended_calls { queued_call.hangup }
@@ -150,10 +159,7 @@ class ElectricSlide
 
       agent_call.on_end do |end_event|
         # Ensure we don't return an agent that was removed or paused
-        if agent && @agents.include?(agent) && agent.presence == :busy
-          logger.info "Call ended, returning agent #{agent.id} to queue"
-          return_agent agent
-        end
+        conditionally_return_agent agent
 
         agent.callback :disconnect, self, agent_call, queued_call
 
@@ -170,6 +176,15 @@ class ElectricSlide
       agent.callback :connect, self, agent_call, queued_call
 
       agent_call.dial agent.address, agent.dial_options_for(self, queued_call)
+    end
+
+    def conditionally_return_agent(agent)
+      if agent && @agents.include?(agent) && agent.presence == :busy
+        logger.info "Returning agent #{agent.id} to queue"
+        return_agent agent
+      else
+        logger.debug "Not returning agent #{agent.inspect} to the queue"
+      end
     end
 
     # Returns the next waiting caller
