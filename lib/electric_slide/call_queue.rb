@@ -155,8 +155,8 @@ class ElectricSlide
         agent.callback :disconnect, self, agent_call, queued_call
 
         unless connected
-          priority_enqueue queued_call if queued_call.active?
           logger.warn "Call did not connect to agent! Agent #{agent.id} call ended with #{end_event.reason}; reinserting caller #{queued_call.from} into queue"
+          ignoring_ended_calls { priority_enqueue queued_call if queued_call.active? }
         end
       end
 
