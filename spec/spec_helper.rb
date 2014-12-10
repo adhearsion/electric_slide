@@ -13,6 +13,6 @@ RSpec.configure do |config|
 end
 
 def dummy_call
-  Hash.new
+  Adhearsion::Call.new
 end
 

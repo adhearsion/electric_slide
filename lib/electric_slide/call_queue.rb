@@ -110,6 +110,7 @@ class ElectricSlide
     # Add a call to the end of the queue, the normal FIFO queue behavior
     # @param [Adhearsion::Call] call Caller to be added to the queue
     def enqueue(call)
+      logger.info "Adding call from #{call.from} to the queue"
       call[:enqueue_time] = Time.now
       @queue << call unless @queue.include? call
 
