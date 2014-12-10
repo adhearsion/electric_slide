@@ -166,7 +166,11 @@ class ElectricSlide
 
       agent.callback :connect, self, agent_call, queued_call
 
-      agent_call.dial agent.address, agent.dial_options_for(self, queued_call)
+      dial_options = agent.dial_options_for(self, queued_call)
+
+      agent_call.execute_controller_or_router_on_answer dial_options.delete(:confirm), dial_options.delete(:confirm_metadata)
+
+      agent_call.dial agent.address, dial_options
     end
 
     def conditionally_return_agent(agent)
