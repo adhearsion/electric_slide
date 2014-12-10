@@ -140,7 +140,7 @@ class ElectricSlide
       # TODO: Allow executing a call controller here, specified by the agent
       agent_call.on_answer do
         begin
-          agent_call.join queued_call
+          agent_call.join queued_call.id
         rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
           # Handle these manually because we need to be able to put the agent back into the queue
           logger.info "Queued call #{queued_caller_id} hung up before agent could join; returning agent #{agent.id} to the queue."
