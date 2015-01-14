@@ -9,6 +9,7 @@ class ElectricSlide
 
     CONNECTION_TYPES = [
       :call,
+      :bridge,
     ].freeze
 
     def self.work(*args)
@@ -235,5 +236,7 @@ class ElectricSlide
       agent_call.dial agent.address, dial_options
     end
 
+    def bridge_agent(agent, queued_call)
+    end
   end
 end
