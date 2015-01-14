@@ -27,4 +27,7 @@ describe ElectricSlide::CallQueue do
 
   it "should select the agent that has been waiting the longest"
 
+  it "should raise when given an invalid connection type" do
+    expect { ElectricSlide::CallQueue.new :blah }.to raise_error
+  end
 end

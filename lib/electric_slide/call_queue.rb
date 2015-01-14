@@ -7,11 +7,21 @@ class ElectricSlide
   class CallQueue
     include Celluloid
 
+    CONNECTION_TYPES = [
+      :call,
+    ].freeze
+
     def self.work(*args)
       self.supervise *args
     end
 
-    def initialize(agent_strategy = AgentStrategy::LongestIdle)
+    def initialize(opts = {})
+      agent_strategy  = opts[:agent_strategy] || AgentStrategy::LongestIdle
+      connection_type = opts[:connection_type] || :call
+
+      raise ArgumentError, "Invalid connection type; must be one of #{CONNECTION_TYPES.join ','}" unless CONNECTION_TYPES.include? connection_type
+
+      @free_agents = [] # Needed to keep track of waiting order
       @agents = []      # Needed to keep track of global list of agents
       @queue = []       # Calls waiting for an agent
 
@@ -134,7 +144,50 @@ class ElectricSlide
     # @param [Adhearsion::Call] call Caller to be connected
     def connect(agent, queued_call)
       logger.info "Connecting #{agent} with #{queued_call.from}"
+      case @connection_type
+      when :call
+        call_agent agent, queued_call
+      when :bridge
+        bridge_agent agent, queued_call
+      end
+    end
 
+    def conditionally_return_agent(agent)
+      if agent && @agents.include?(agent) && agent.presence == :busy
+        logger.info "Returning agent #{agent.id} to queue"
+        return_agent agent
+      else
+        logger.debug "Not returning agent #{agent.inspect} to the queue"
+      end
+    end
+
+    # Returns the next waiting caller
+    # @return [Adhearsion::Call] The next waiting caller
+    def get_next_caller
+      @queue.shift
+    end
+
+    # Checks whether any callers are waiting
+    # @return [Boolean] True if a caller is waiting
+    def call_waiting?
+      @queue.length > 0
+    end
+
+    # Returns the number of callers waiting in the queue
+    # @return [Fixnum]
+    def calls_waiting
+      @queue.length
+    end
+
+  private
+    # @private
+    def ignoring_ended_calls
+      yield
+    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
+      # This actor may previously have been shut down due to the call ending
+    end
+
+    def call_agent(agent, queued_call)
       agent_call = Adhearsion::OutboundCall.new
       agent_call[:agent]  = agent
       agent_call[:queued_call] = queued_call
@@ -182,39 +235,5 @@ class ElectricSlide
       agent_call.dial agent.address, dial_options
     end
 
-    def conditionally_return_agent(agent)
-      if agent && @agents.include?(agent) && agent.presence == :busy
-        logger.info "Returning agent #{agent.id} to queue"
-        return_agent agent
-      else
-        logger.debug "Not returning agent #{agent.inspect} to the queue"
-      end
-    end
-
-    # Returns the next waiting caller
-    # @return [Adhearsion::Call] The next waiting caller
-    def get_next_caller
-      @queue.shift
-    end
-
-    # Checks whether any callers are waiting
-    # @return [Boolean] True if a caller is waiting
-    def call_waiting?
-      @queue.length > 0
-    end
-
-    # Returns the number of callers waiting in the queue
-    # @return [Fixnum]
-    def calls_waiting
-      @queue.length
-    end
-
-  private
-    # @private
-    def ignoring_ended_calls
-      yield
-    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
-      # This actor may previously have been shut down due to the call ending
-    end
   end
 end
