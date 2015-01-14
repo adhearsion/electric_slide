@@ -96,7 +96,7 @@ class ElectricSlide
         rescue Adhearsion::Call::ExpiredError
           next
         end
-        result = connect checkout_agent, call
+        connect checkout_agent, call
         break
       end
     end
