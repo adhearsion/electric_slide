@@ -237,6 +237,28 @@ class ElectricSlide
     end
 
     def bridge_agent(agent, queued_call)
+      # Stash caller ID to make log messages work even if calls end
+      queued_caller_id = queued_call.from
+
+      agent.call.on_unjoined do
+        ignoring_ended_calls { queued_call.hangup }
+      end
+
+      agent.join queued_call
+    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
+      ignoring_ended_calls do
+        if agent.active?
+          logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
+          conditionally_return_agent agent
+        end
+      end
+
+      ignoring_ended_calls do
+        if queued_call.active?
+          priority_enqueue queued_call
+          logger.warn "Call failed to connect to Agent #{agent.id} due to agent hangup; reinserting caller #{queued_caller_id} into queue"
+        end
+      end
     end
   end
 end
