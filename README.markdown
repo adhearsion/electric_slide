@@ -8,10 +8,11 @@ To ensure proper operation, a few things are assumed:
 * Agents will only be logged into a single queue at a time
     If you have two types of agents (say "support" and "sales") then you should have two queues, each with their own pool of agents
 * Agent authentication will happen before entering the queue - it is not the queue's concern
-* The strategy for both agents and callers is FIFO - the first (available) of each type to begin waiting is selected
-* Other (custom) strategies can be implemented by creating custom queue implementations - see below
+* The strategy for callers is FIFO: the caller who has been waiting the longest is the next to get an agent
 * Queues will be implemented as a Celluloid Actor, which should protect the call selection strategies against race conditions
-* When an agent is selected to take a call, the agent is called. For other behaviors, a custom queue must be implemented
+* There are two ways to connect an agent:
+  - If the Agent object provides an `address` attribute, and the queue's `connection_type` is set to `call`, then the queue will call the agent when a caller is waiting
+  - If the Agent object provides a `call` attribute, and the queue's `connection_type` is set to `bridge`, then the call queue will bridge the agent to the caller. In this mode, the agent hanging up will log him out of the queue
 
 TODO:
 * Example for using Matrioska to offer Agents and Callers interactivity while waiting
@@ -20,8 +21,11 @@ TODO:
 Example Queue
 -------------
 
-```Ruby
-my_queue = ElectricSlide.create :my_queue
+```ruby
+my_queue = ElectricSlide.create :my_queue, ElectricSlide::CallQueue
+# While you can have ElectricSlide keep track of custom queues, it is recommended to use the built-in CallQueue object
+# NOTE! The authors of ElectricSlide recommend NOT to subclass, monkeypatch, or otherwise alter the CallQueue implementation, as
+# the likelihood of creating race conditions is high.
 
 # Another way to get a handle on a queue
 ElectricSlide.create :my_queue
@@ -32,7 +36,7 @@ my_queue = ElectricSlide.get_queue :my_queue
 Example CallController for Queued Call
 --------------------------------------
 
-```Ruby
+```ruby
 class EnterTheQueue < Adhearsion::CallController
   def run
     answer
@@ -46,9 +50,10 @@ class EnterTheQueue < Adhearsion::CallController
     end
 
     ElectricSlide.get_queue(:my_queue).enqueue call
-    # Blocks until call is done talking to the agent
-
-    say "Goodbye"
+    
+    # The controller will exit, but the call will remain up
+    # The call will automatically hang up after speaking to an agent
+    call.auto_hangup = false
   end
 end
 ```
@@ -61,23 +66,57 @@ ElectricSlide expects to be given a objects that quack like an agent. You can us
 
 To add an agent who will receive calls whenever a call is enqueued, do something like this:
 
-```Ruby
+```ruby
 agent = ElectricSlide::Agent.new id: 1, address: 'sip:agent1@example.com', presence: :available
 ElectricSlide.get_queue(:my_queue).add_agent agent
 ```
 
 To inform the queue that the agent is no longer available you *must* use the ElectricSlide queue interface. /Do not attempt to alter agent objects directly!/
 
-```Ruby
+```ruby
 ElectricSlide.update_agent 1, presence: offline
 ```
 
 If it is more convenient, you may also pass `#update_agent` an Agent-like object:
 
-```Ruby
-agent = ElectricSlide::Agent.new id:1, address: 'sip:agent1@example.com', presence: :offline
+```ruby
+options = {
+  id: 1,
+  address: 'sip:agent1@example.com',
+  presence: offline
+}
+agent = ElectricSlide::Agent.new options
 ElectricSlide.update_agent 1, agent
 ```
+
+Switching connection types
+--------------------------
+
+ElectricSlide provides two methods for connecting callers to agents:
+- `:call`: (default) If the Agent object provides an `address` attribute, and the queue's `connection_type` is set to `call`, then the queue will call the agent when a caller is waiting
+- `:bridge`: If the Agent object provides a `call` attribute, and the queue's `connection_type` is set to `bridge`, then the call queue will bridge the agent to the caller. In this mode, the agent hanging up will log him out of the queue
+
+To select the connection type, specify it when creating the queue:
+
+```ruby
+ElectricSlide.create_queue :my_queue, ElectricSlide::CallQueue, connection_type: :bridge
+```
+
+Selecting an Agent distribution strategy
+----------------------------------------
+
+Different use-cases have different requirements for selecting the next agent to take a call.  ElectricSlide provides two strategies which may be used. You are also welcome to create your own distribution strategy by implementing the same interface as described in `ElectricSlide::AgentStrategy::LongestIdle`.
+
+To select an agent strategy, specify it when creating the queue:
+
+```ruby
+ElectricSlide.create_queue :my_queue, ElectricSlide::CallQueue, agent_strategy: ElectricSlide::AgentStrategy::LongestIdle
+```
+
+Two strategies are provided out-of-the-box:
+
+* `ElectricSlide::AgentStrategy::LongestIdle` selects the agent that has been idle for the longest amount of time.
+* `ElectricSlide::AgentStrategy::FixedPriority` selects the agent with the lowest numeric priority first.  In the event that more than one agent is available at a given priority, then the agent that has been idle the longest at the lowest numeric priority is selected.
 
 Custom Agent Behavior
 ----------------------------
