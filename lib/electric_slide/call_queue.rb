@@ -1,4 +1,8 @@
 # encoding: utf-8
+
+# The default agent strategy
+require 'electric_slide/agent_strategy/longest_idle'
+
 class ElectricSlide
   class CallQueue
     include Celluloid
@@ -7,22 +11,23 @@ class ElectricSlide
       self.supervise *args
     end
 
-    def initialize
-      @free_agents = [] # Needed to keep track of waiting order
+    def initialize(agent_strategy = AgentStrategy::LongestIdle)
       @agents = []      # Needed to keep track of global list of agents
       @queue = []       # Calls waiting for an agent
+
+      @strategy = agent_strategy.new
     end
 
     # Checks whether an agent is available to take a call
     # @return [Boolean] True if an agent is available
     def agent_available?
-      @free_agents.count > 0
+      @strategy.agent_available?
     end
 
     # Assigns the first available agent, marking the agent :busy
     # @return {Agent}
     def checkout_agent
-      agent = @free_agents.shift
+      agent = @strategy.checkout_agent
       agent.presence = :busy
       agent
     end
@@ -51,7 +56,7 @@ class ElectricSlide
     def add_agent(agent)
       logger.info "Adding agent #{agent} to the queue"
       @agents << agent unless @agents.include? agent
-      @free_agents << agent if agent.presence == :available && !@free_agents.include?(agent)
+      @strategy << agent if agent.presence == :available
       check_for_connections
     end
 
@@ -66,7 +71,7 @@ class ElectricSlide
       agent.address = address if address
 
       if agent.presence == :available
-        @free_agents << agent unless @free_agents.include? agent
+        @strategy << agent
         check_for_connections
       end
       agent
@@ -77,7 +82,7 @@ class ElectricSlide
     # @return [Agent, Nil] The Agent object if removed, Nil otherwise
     def remove_agent(agent)
       logger.info "Removing agent #{agent} from the queue"
-      @free_agents.delete agent
+      @strategy.delete agent
       @agents.delete agent
     end
 
