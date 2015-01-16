@@ -13,6 +13,22 @@ class ElectricSlide
         end
       end
 
+      # Returns information about the number of available agents
+      # The data returned depends on the AgentStrategy in use.
+      # @return [Hash] Summary information about agents available, depending on strategy
+      # :total: The total number of available agents
+      # :priorities: A Hash containing the number of available agents at each priority
+      def available_agent_summary
+        @priorities.inject({}) do |summary, data|
+          priority, agents = *data
+          summary[:total] ||= 0
+          summary[:total] += agents.count
+          summary[:priorities] ||= {}
+          summary[:priorities][priority] = agents.count
+          summary
+        end
+      end
+
       def checkout_agent
         _, agents = @priorities.detect do |priority, agents|
           agents.present?

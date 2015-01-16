@@ -35,5 +35,14 @@ class ElectricSlide::Agent
     {}
   end
 
+  def join(queued_call)
+    # For use in queues that need bridge connections
+    @call.join queued_call
+  end
+
+  # FIXME: Use delegator?
+  def from
+    @call.from
+  end
 end
 

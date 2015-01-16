@@ -25,6 +25,14 @@ describe ElectricSlide::CallQueue do
     expect(queue.get_next_caller).to be call_a
   end
 
-  it "should select the agent that has been waiting the longest"
+  it "should remove a caller who abandons the queue" do
+    queue.enqueue call_a
+    queue.enqueue call_b
+    queue.abandon call_a
+    expect(queue.get_next_caller).to be call_b
+  end
 
+  it "should raise when given an invalid connection type" do
+    expect { ElectricSlide::CallQueue.new connection_type: :blah }.to raise_error
+  end
 end

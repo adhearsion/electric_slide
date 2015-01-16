@@ -7,11 +7,22 @@ class ElectricSlide
   class CallQueue
     include Celluloid
 
+    CONNECTION_TYPES = [
+      :call,
+      :bridge,
+    ].freeze
+
     def self.work(*args)
       self.supervise *args
     end
 
-    def initialize(agent_strategy = AgentStrategy::LongestIdle)
+    def initialize(opts = {})
+      agent_strategy   = opts[:agent_strategy]  || AgentStrategy::LongestIdle
+      @connection_type = opts[:connection_type] || :call
+
+      raise ArgumentError, "Invalid connection type; must be one of #{CONNECTION_TYPES.join ','}" unless CONNECTION_TYPES.include? @connection_type
+
+      @free_agents = [] # Needed to keep track of waiting order
       @agents = []      # Needed to keep track of global list of agents
       @queue = []       # Calls waiting for an agent
 
@@ -22,6 +33,15 @@ class ElectricSlide
     # @return [Boolean] True if an agent is available
     def agent_available?
       @strategy.agent_available?
+    end
+
+    # Returns information about the number of available agents
+    # The data returned depends on the AgentStrategy in use.
+    # The data will always include a :total count of the agents available
+    # @return [Hash] Summary information about agents available, depending on strategy
+    def available_agent_summary
+      # TODO: Make this a delegator?
+      @strategy.available_agent_summary
     end
 
     # Assigns the first available agent, marking the agent :busy
@@ -54,6 +74,14 @@ class ElectricSlide
     # Registers an agent to the queue
     # @param [Agent] agent The agent to be added to the queue
     def add_agent(agent)
+      case @connection_type
+      when :call
+        # FIXME: We want this to raise in the caller, and not kill the Queue actor
+        raise ArgumentError, "Agent has no callable address" unless agent.address
+      when :bridge
+        raise ArgumentError, "Agent has no active call" unless agent.call && agent.call.active?
+      end
+
       logger.info "Adding agent #{agent} to the queue"
       @agents << agent unless @agents.include? agent
       @strategy << agent if agent.presence == :available
@@ -96,7 +124,7 @@ class ElectricSlide
         rescue Adhearsion::Call::ExpiredError
           next
         end
-        result = connect checkout_agent, call
+        connect checkout_agent, call
         break
       end
     end
@@ -134,7 +162,50 @@ class ElectricSlide
     # @param [Adhearsion::Call] call Caller to be connected
     def connect(agent, queued_call)
       logger.info "Connecting #{agent} with #{queued_call.from}"
+      case @connection_type
+      when :call
+        call_agent agent, queued_call
+      when :bridge
+        bridge_agent agent, queued_call
+      end
+    end
 
+    def conditionally_return_agent(agent)
+      if agent && @agents.include?(agent) && agent.presence == :busy
+        logger.info "Returning agent #{agent.id} to queue"
+        return_agent agent
+      else
+        logger.debug "Not returning agent #{agent.inspect} to the queue"
+      end
+    end
+
+    # Returns the next waiting caller
+    # @return [Adhearsion::Call] The next waiting caller
+    def get_next_caller
+      @queue.shift
+    end
+
+    # Checks whether any callers are waiting
+    # @return [Boolean] True if a caller is waiting
+    def call_waiting?
+      @queue.length > 0
+    end
+
+    # Returns the number of callers waiting in the queue
+    # @return [Fixnum]
+    def calls_waiting
+      @queue.length
+    end
+
+  private
+    # @private
+    def ignoring_ended_calls
+      yield
+    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
+      # This actor may previously have been shut down due to the call ending
+    end
+
+    def call_agent(agent, queued_call)
       agent_call = Adhearsion::OutboundCall.new
       agent_call[:agent]  = agent
       agent_call[:queued_call] = queued_call
@@ -182,39 +253,34 @@ class ElectricSlide
       agent_call.dial agent.address, dial_options
     end
 
-    def conditionally_return_agent(agent)
-      if agent && @agents.include?(agent) && agent.presence == :busy
-        logger.info "Returning agent #{agent.id} to queue"
-        return_agent agent
-      else
-        logger.debug "Not returning agent #{agent.inspect} to the queue"
+    def bridge_agent(agent, queued_call)
+      # Stash caller ID to make log messages work even if calls end
+      queued_caller_id = queued_call.from
+
+      agent.call.on_unjoined do
+        ignoring_ended_calls { queued_call.hangup }
+        ignoring_ended_calls { conditionally_return_agent agent if agent.call.active? }
       end
-    end
 
-    # Returns the next waiting caller
-    # @return [Adhearsion::Call] The next waiting caller
-    def get_next_caller
-      @queue.shift
-    end
+      agent.call.on_end do
+        remove_agent agent
+      end
 
-    # Checks whether any callers are waiting
-    # @return [Boolean] True if a caller is waiting
-    def call_waiting?
-      @queue.length > 0
-    end
-
-    # Returns the number of callers waiting in the queue
-    # @return [Fixnum]
-    def calls_waiting
-      @queue.length
-    end
-
-  private
-    # @private
-    def ignoring_ended_calls
-      yield
+      agent.join queued_call
     rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
-      # This actor may previously have been shut down due to the call ending
+      ignoring_ended_calls do
+        if agent.call.active?
+          logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
+          conditionally_return_agent agent
+        end
+      end
+
+      ignoring_ended_calls do
+        if queued_call.active?
+          priority_enqueue queued_call
+          logger.warn "Call failed to connect to Agent #{agent.id} due to agent hangup; reinserting caller #{queued_caller_id} into queue"
+        end
+      end
     end
   end
 end
