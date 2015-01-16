@@ -250,12 +250,17 @@ class ElectricSlide
 
       agent.call.on_unjoined do
         ignoring_ended_calls { queued_call.hangup }
+        ignoring_ended_calls { conditionally_return_agent agent if agent.call.active? }
+      end
+
+      agent.call.on_end do
+        remove_agent agent
       end
 
       agent.join queued_call
     rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
       ignoring_ended_calls do
-        if agent.active?
+        if agent.call.active?
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
           conditionally_return_agent agent
         end
