@@ -14,7 +14,7 @@ class ElectricSlide::Agent
 
   def callback(type, *args)
     callback = instance_variable_get "@#{type}_callback"
-    callback.call if callback && callback.respond_to?(:call)
+    callback.call(*args) if callback && callback.respond_to?(:call)
   end
 
 
