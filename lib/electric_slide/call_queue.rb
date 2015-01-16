@@ -35,6 +35,15 @@ class ElectricSlide
       @strategy.agent_available?
     end
 
+    # Returns information about the number of available agents
+    # The data returned depends on the AgentStrategy in use.
+    # The data will always include a :total count of the agents available
+    # @return [Hash] Summary information about agents available, depending on strategy
+    def available_agent_summary
+      # TODO: Make this a delegator?
+      @strategy.available_agent_summary
+    end
+
     # Assigns the first available agent, marking the agent :busy
     # @return {Agent}
     def checkout_agent
