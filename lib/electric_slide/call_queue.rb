@@ -17,10 +17,10 @@ class ElectricSlide
     end
 
     def initialize(opts = {})
-      agent_strategy  = opts[:agent_strategy]  || AgentStrategy::LongestIdle
-      connection_type = opts[:connection_type] || :call
+      agent_strategy   = opts[:agent_strategy]  || AgentStrategy::LongestIdle
+      @connection_type = opts[:connection_type] || :call
 
-      raise ArgumentError, "Invalid connection type; must be one of #{CONNECTION_TYPES.join ','}" unless CONNECTION_TYPES.include? connection_type
+      raise ArgumentError, "Invalid connection type; must be one of #{CONNECTION_TYPES.join ','}" unless CONNECTION_TYPES.include? @connection_type
 
       @free_agents = [] # Needed to keep track of waiting order
       @agents = []      # Needed to keep track of global list of agents
