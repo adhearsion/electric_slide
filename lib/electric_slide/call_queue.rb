@@ -76,10 +76,9 @@ class ElectricSlide
     def add_agent(agent)
       case @connection_type
       when :call
-        # FIXME: We want this to raise in the caller, and not kill the Queue actor
-        raise ArgumentError, "Agent has no callable address" unless agent.address
+        abort ArgumentError, "Agent has no callable address" unless agent.address
       when :bridge
-        raise ArgumentError, "Agent has no active call" unless agent.call && agent.call.active?
+        abort ArgumentError, "Agent has no active call" unless agent.call && agent.call.active?
       end
 
       logger.info "Adding agent #{agent} to the queue"
