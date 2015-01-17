@@ -13,20 +13,20 @@ class ElectricSlide::Agent
   end
 
   def callback(type, *args)
-    callback = instance_variable_get "@#{type}_callback"
+    callback = self.class.instance_variable_get "@#{type}_callback"
     callback.call(*args) if callback && callback.respond_to?(:call)
   end
 
 
   # Provide a block to be called when this agent is connected to a caller
   # The block will be passed the queue, the agent call and the client call
-  def on_connect(&block)
+  def self.on_connect(&block)
     @connect_callback = block
   end
 
   # Provide a block to be called when this agent is disconnected to a caller
   # The block will be passed the queue, the agent call and the client call
-  def on_disconnect(&block)
+  def self.on_disconnect(&block)
     @disconnect_callback = block
   end
 
