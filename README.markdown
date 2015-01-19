@@ -50,7 +50,7 @@ class EnterTheQueue < Adhearsion::CallController
     end
 
     ElectricSlide.get_queue(:my_queue).enqueue call
-    
+
     # The controller will exit, but the call will remain up
     # The call will automatically hang up after speaking to an agent
     call.auto_hangup = false
@@ -125,3 +125,28 @@ If you need custom functionality to occur whenever an Agent is selected to take 
 
 * `on_connect`
 * `on_disconnect`
+
+Confirmation Controllers
+------------------------
+
+In case you need to execute a confirmation controller on the call that is placed to the agent, such as "Press 1 to accept the call", you currently need to pass in the confirmation class name and the call object as metadata in the `call_options_for` callback in your `ElectricSlide::Agent` subclass.
+
+```ruby
+# an example from the Agent subclass
+def dial_options_for(queue, queued_call)
+  {
+    from: caller_digits(queued_call.from),
+    timeout: on_pstn? ? APP_CONFIG.agent_timeout * 3 : APP_CONFIG.agent_timeout,
+    confirm: MyConfirmationController,
+    confirm_metadata: {caller: queued_call, agent: self},
+  }
+end
+```
+
+You then need to handle the join in your confirmation controller, using for example:
+
+```ruby
+call.join metadata[:caller] if confirm!
+```
+
+where `confirm!` is your logic for deciding if you want the call to be connected or not. Hanging up during the confirmation controller or letting it finish without any action will result in the call being sent to the next agent.

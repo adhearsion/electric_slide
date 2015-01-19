@@ -212,8 +212,11 @@ class ElectricSlide
       # Stash the caller ID so we don't have to try to get it from a dead call object later
       queued_caller_id = queued_call.from
 
-      # TODO: Allow executing a call controller here, specified by the agent
-      agent_call.on_answer { ignoring_ended_calls { agent_call.join queued_call.uri } }
+      # The call controller is actually run by #dial, here we skip joining if we do not have one
+      dial_options = agent.dial_options_for(self, queued_call)
+      unless dial_options[:confirm]
+        agent_call.on_answer { ignoring_ended_calls { agent_call.join queued_call.uri } }
+      end
 
       # Disconnect agent if caller hangs up before agent answers
       queued_call.on_end { ignoring_ended_calls { agent_call.hangup } }
@@ -244,8 +247,6 @@ class ElectricSlide
       end
 
       agent.callback :connect, self, agent_call, queued_call
-
-      dial_options = agent.dial_options_for(self, queued_call)
 
       agent_call.execute_controller_or_router_on_answer dial_options.delete(:confirm), dial_options.delete(:confirm_metadata)
 
