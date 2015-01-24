@@ -16,7 +16,7 @@ class ElectricSlide
       # Returns a count of the number of available agents
       # @return [Hash] Hash of information about available agents
       # This strategy only returns the count of agents available with :total
-      def count_available_agents
+      def available_agent_summary
         { total: @free_agents }
       end
 
