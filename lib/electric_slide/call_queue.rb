@@ -258,12 +258,17 @@ class ElectricSlide
       queued_caller_id = queued_call.from
 
       agent.call.on_unjoined do
+        agent.callback :disconnect, self, agent.call, queued_call
         ignoring_ended_calls { queued_call.hangup }
         ignoring_ended_calls { conditionally_return_agent agent if agent.call.active? }
       end
 
       agent.call.on_end do
         remove_agent agent
+      end
+
+      agent.call.on_joined do 
+        agent.callback :connect, self, agent.call, queued_call
       end
 
       agent.join queued_call
