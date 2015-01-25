@@ -36,6 +36,7 @@ class ElectricSlide::Agent
   end
 
   def join(queued_call)
+    logger.info "Joining the agent to #{queued_call.from}"
     # For use in queues that need bridge connections
     @call.join queued_call
   end

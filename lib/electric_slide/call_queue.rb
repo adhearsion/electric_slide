@@ -257,6 +257,8 @@ class ElectricSlide
       # Stash caller ID to make log messages work even if calls end
       queued_caller_id = queued_call.from
 
+      logger.info "In bridge agent method"
+
       agent.call.on_unjoined do
         agent.callback :disconnect, self, agent.call, queued_call
         ignoring_ended_calls { queued_call.hangup }
