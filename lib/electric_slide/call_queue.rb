@@ -12,6 +12,11 @@ class ElectricSlide
       :bridge,
     ].freeze
 
+    AGENT_RETURN_METHODS = [
+      :auto,
+      :manual,
+    ].freeze
+
     def self.work(*args)
       self.supervise *args
     end
@@ -19,8 +24,10 @@ class ElectricSlide
     def initialize(opts = {})
       agent_strategy   = opts[:agent_strategy]  || AgentStrategy::LongestIdle
       @connection_type = opts[:connection_type] || :call
+      @agent_return_method = opts[:agent_return_method] || :auto
 
       raise ArgumentError, "Invalid connection type; must be one of #{CONNECTION_TYPES.join ','}" unless CONNECTION_TYPES.include? @connection_type
+      raise ArgumentError, "Invalid requeue method; must be one of #{AGENT_RETURN_METHODS.join ','}" unless AGENT_RETURN_METHODS.include? @agent_return_method
 
       @free_agents = [] # Needed to keep track of waiting order
       @agents = []      # Needed to keep track of global list of agents
@@ -170,7 +177,7 @@ class ElectricSlide
     end
 
     def conditionally_return_agent(agent)
-      if agent && @agents.include?(agent) && agent.presence == :busy
+      if agent && @agents.include?(agent) && agent.presence == :busy && @agent_return_method == :auto
         logger.info "Returning agent #{agent.id} to queue"
         return_agent agent
       else
@@ -256,11 +263,13 @@ class ElectricSlide
     def bridge_agent(agent, queued_call)
       # Stash caller ID to make log messages work even if calls end
       queued_caller_id = queued_call.from
+      agent.call[:queued_call] = queued_call
 
       agent.call.on_unjoined do
         agent.callback :disconnect, self, agent.call, queued_call
         ignoring_ended_calls { queued_call.hangup }
         ignoring_ended_calls { conditionally_return_agent agent if agent.call.active? }
+        agent.call[:queued_call] = nil
       end
 
       agent.call.on_end do
