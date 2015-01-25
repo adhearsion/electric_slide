@@ -167,6 +167,7 @@ class ElectricSlide
       when :bridge
         bridge_agent agent, queued_call
       end
+      logger.info "Leaving connect method"
     end
 
     def conditionally_return_agent(agent)
