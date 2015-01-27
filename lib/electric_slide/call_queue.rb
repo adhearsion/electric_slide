@@ -176,12 +176,10 @@ class ElectricSlide
       end
     end
 
-    def conditionally_return_agent(agent, tmp_return_method = nil)
-      method = tmp_return_method ||= @agent_return_method
+    def conditionally_return_agent(agent, return_method = @agent_return_method)
+      raise ArgumentError, "Invalid requeue method; must be one of #{AGENT_RETURN_METHODS.join ','}" unless AGENT_RETURN_METHODS.include? return_method
 
-      raise ArgumentError, "Invalid requeue method; must be one of #{AGENT_RETURN_METHODS.join ','}" unless AGENT_RETURN_METHODS.include? method
-
-      if agent && @agents.include?(agent) && agent.presence == :busy && method == :auto
+      if agent && @agents.include?(agent) && agent.presence == :busy && return_method == :auto
         logger.info "Returning agent #{agent.id} to queue"
         return_agent agent
       else
