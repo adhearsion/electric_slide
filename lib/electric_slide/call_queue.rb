@@ -115,9 +115,10 @@ class ElectricSlide
     # @param [Agent] agent The {Agent} to be removed from the queue
     # @return [Agent, Nil] The Agent object if removed, Nil otherwise
     def remove_agent(agent)
-      logger.info "Removing agent #{agent} from the queue"
       @strategy.delete agent
       @agents.delete agent
+      logger.info "Removing agent #{agent} from the queue"
+    rescue Adhearsion::Call::ExpiredError
     end
 
     # Checks to see if any callers are waiting for an agent and attempts to connect them to
