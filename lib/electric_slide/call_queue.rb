@@ -168,7 +168,8 @@ class ElectricSlide
     # @param [Agent] agent Agent to be connected
     # @param [Adhearsion::Call] call Caller to be connected
     def connect(agent, queued_call)
-      logger.info "Connecting #{agent} with #{queued_call.from}"
+      remote_party = queued_call.is_a?(Adhearsion::OutboundCall) ? queued_call.to : queued_call.from
+      logger.info "Connecting #{agent} with #{remote_party}"
       case @connection_type
       when :call
         call_agent agent, queued_call
