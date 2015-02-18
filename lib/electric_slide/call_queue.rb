@@ -151,7 +151,7 @@ class ElectricSlide
     # @param [Adhearsion::Call] call Caller to be added to the queue
     def enqueue(call)
       ignoring_ended_calls do
-        logger.info "Adding call from #{call.from} to the queue"
+        logger.info "Adding call from #{remote_party call} to the queue"
         call[:enqueue_time] = Time.now
         @queue << call unless @queue.include? call
 
@@ -162,7 +162,7 @@ class ElectricSlide
     # Remove a waiting call from the queue. Used if the caller hangs up or is otherwise removed.
     # @param [Adhearsion::Call] call Caller to be removed from the queue
     def abandon(call)
-      logger.info "Caller #{call.from} has abandoned the queue"
+      logger.info "Caller #{remote_party call} has abandoned the queue"
       @queue.delete call
     end
 
@@ -170,8 +170,7 @@ class ElectricSlide
     # @param [Agent] agent Agent to be connected
     # @param [Adhearsion::Call] call Caller to be connected
     def connect(agent, queued_call)
-      remote_party = queued_call.is_a?(Adhearsion::OutboundCall) ? queued_call.to : queued_call.from
-      logger.info "Connecting #{agent} with #{remote_party}"
+      logger.info "Connecting #{agent} with #{remote_party queued_call}"
       case @connection_type
       when :call
         call_agent agent, queued_call
@@ -210,6 +209,14 @@ class ElectricSlide
     end
 
   private
+    # Get the caller ID of the remote party.
+    # If this is an OutboundCall, use Call#to
+    # Otherwise, use Call#from
+    def remote_party(call)
+      call.is_a?(Adhearsion::OutboundCall) ? call.to : call.from
+    end
+
+
     # @private
     def ignoring_ended_calls
       yield
@@ -223,7 +230,7 @@ class ElectricSlide
       agent_call[:queued_call] = queued_call
 
       # Stash the caller ID so we don't have to try to get it from a dead call object later
-      queued_caller_id = queued_call.from
+      queued_caller_id = remote_party queued_call
 
       # The call controller is actually run by #dial, here we skip joining if we do not have one
       dial_options = agent.dial_options_for(self, queued_call)
@@ -268,7 +275,7 @@ class ElectricSlide
 
     def bridge_agent(agent, queued_call)
       # Stash caller ID to make log messages work even if calls end
-      queued_caller_id = queued_call.from
+      queued_caller_id = remote_party queued_call
       agent.call[:queued_call] = queued_call
 
       agent.call.register_tmp_handler :event, Punchblock::Event::Unjoined do
