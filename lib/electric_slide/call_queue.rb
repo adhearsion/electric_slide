@@ -83,9 +83,9 @@ class ElectricSlide
     def add_agent(agent)
       case @connection_type
       when :call
-        abort ArgumentError, "Agent has no callable address" unless agent.address
+        abort ArgumentError.new("Agent has no callable address") unless agent.address
       when :bridge
-        abort ArgumentError, "Agent has no active call" unless agent.call && agent.call.active?
+        abort ArgumentError.new("Agent has no active call") unless agent.call && agent.call.active?
       end
 
       logger.info "Adding agent #{agent} to the queue"
