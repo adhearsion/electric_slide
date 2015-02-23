@@ -86,6 +86,10 @@ class ElectricSlide
         abort ArgumentError.new("Agent has no callable address") unless agent.address
       when :bridge
         abort ArgumentError.new("Agent has no active call") unless agent.call && agent.call.active?
+        unless agent.call[:electric_slide_callback_set]
+          agent.call.on_end { remove_agent agent }
+          agent.call[:electric_slide_callback_set] = true
+        end
       end
 
       logger.info "Adding agent #{agent} to the queue"
@@ -283,10 +287,6 @@ class ElectricSlide
         ignoring_ended_calls { queued_call.hangup }
         ignoring_ended_calls { conditionally_return_agent agent if agent.call.active? }
         agent.call[:queued_call] = nil
-      end
-
-      agent.call.on_end do
-        remove_agent agent
       end
 
       agent.callback :connect, self, agent.call, queued_call
