@@ -292,7 +292,7 @@ class ElectricSlide
       agent.callback :connect, self, agent.call, queued_call
 
       agent.join queued_call
-    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
+    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError, Adhearsion::Call::CommandTimeout
       ignoring_ended_calls do
         if agent.call.active?
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
