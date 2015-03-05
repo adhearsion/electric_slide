@@ -297,6 +297,9 @@ class ElectricSlide
         if agent.call.active?
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
           conditionally_return_agent agent, :auto
+        else
+          # Agent's call has ended, so remove him from the queue
+          remove_agent agent
         end
       end
 
