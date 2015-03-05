@@ -81,6 +81,7 @@ class ElectricSlide
     # Registers an agent to the queue
     # @param [Agent] agent The agent to be added to the queue
     def add_agent(agent)
+      abort ArgumentError.new("#add_agent called with nil object") if agent.nil?
       case @connection_type
       when :call
         abort ArgumentError.new("Agent has no callable address") unless agent.address

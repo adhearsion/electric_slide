@@ -35,4 +35,8 @@ describe ElectricSlide::CallQueue do
   it "should raise when given an invalid connection type" do
     expect { ElectricSlide::CallQueue.new connection_type: :blah }.to raise_error
   end
+
+  it "should raise when given an invalid Agent" do
+    expect { queue.add_agent nil }.to raise_error
+  end
 end
