@@ -6,6 +6,13 @@ require 'electric_slide/agent_strategy/longest_idle'
 class ElectricSlide
   class CallQueue
     include Celluloid
+    ENDED_CALL_EXCEPTIONS = [
+      Adhearsion::Call::Hangup,
+      Adhearsion::Call::ExpiredError,
+      Adhearsion::Call::CommandTimeout,
+      Celluloid::DeadActorError,
+      Punchblock::ProtocolError
+    ]
 
     CONNECTION_TYPES = [
       :call,
@@ -225,7 +232,7 @@ class ElectricSlide
     # @private
     def ignoring_ended_calls
       yield
-    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError
+    rescue *ENDED_CALL_EXCEPTIONS
       # This actor may previously have been shut down due to the call ending
     end
 
@@ -240,7 +247,7 @@ class ElectricSlide
       # The call controller is actually run by #dial, here we skip joining if we do not have one
       dial_options = agent.dial_options_for(self, queued_call)
       unless dial_options[:confirm]
-        agent_call.on_answer { ignoring_ended_calls { agent_call.join queued_call.uri } }
+        agent_call.on_answer { ignoring_ended_calls { agent_call.join queued_call.uri if queued_call.active? } }
       end
 
       # Disconnect agent if caller hangs up before agent answers
@@ -292,8 +299,8 @@ class ElectricSlide
 
       agent.callback :connect, self, agent.call, queued_call
 
-      agent.join queued_call
-    rescue Celluloid::DeadActorError, Adhearsion::Call::Hangup, Adhearsion::Call::ExpiredError, Adhearsion::Call::CommandTimeout
+      agent.join queued_call if queued_call.active?
+    rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
         if agent.call.active?
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
