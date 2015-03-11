@@ -136,16 +136,7 @@ class ElectricSlide
     # Checks to see if any callers are waiting for an agent and attempts to connect them to
     # an available agent
     def check_for_connections
-      while call_waiting? && agent_available?
-        call = get_next_caller
-        begin
-          next unless call.active?
-        rescue Adhearsion::Call::ExpiredError
-          next
-        end
-        connect checkout_agent, call
-        break
-      end
+      connect checkout_agent, get_next_caller while call_waiting? && agent_available?
     end
 
     # Add a call to the head of the queue. Among other reasons, this is used when a caller is sent
