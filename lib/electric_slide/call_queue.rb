@@ -199,7 +199,7 @@ class ElectricSlide
       ignoring_ended_calls do
         if agent.call && agent.call.active?
           logger.warn "Dead call exception in #connect but agent call still alive, reinserting into queue"
-          add_agent queued_call
+          return_agent queued_call
         end
       end
     end
