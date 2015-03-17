@@ -62,7 +62,7 @@ class ElectricSlide
     # @return {Agent}
     def checkout_agent
       agent = @strategy.checkout_agent
-      agent.presence = :busy
+      agent.presence = :busy if agent
       agent
     end
 
@@ -173,12 +173,17 @@ class ElectricSlide
     # @param [Agent] agent Agent to be connected
     # @param [Adhearsion::Call] call Caller to be connected
     def connect(agent, queued_call)
-      logger.info "Connecting #{agent} with #{remote_party queued_call}"
-      case @connection_type
-      when :call
-        call_agent agent, queued_call
-      when :bridge
-        bridge_agent agent, queued_call
+      if agent
+        logger.info "Connecting #{agent} with #{remote_party queued_call}"
+        case @connection_type
+        when :call
+          call_agent agent, queued_call
+        when :bridge
+          bridge_agent agent, queued_call
+        end
+      else
+        # This had to have failed because of an agent error
+        priority_enqueue queued_call
       end
     end
 
