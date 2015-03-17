@@ -165,7 +165,7 @@ class ElectricSlide
     # Remove a waiting call from the queue. Used if the caller hangs up or is otherwise removed.
     # @param [Adhearsion::Call] call Caller to be removed from the queue
     def abandon(call)
-      logger.info "Caller #{remote_party call} has abandoned the queue"
+      ignoring_ended_calls { logger.info "Caller #{remote_party call} has abandoned the queue" }
       @queue.delete call
     end
 
@@ -173,12 +173,34 @@ class ElectricSlide
     # @param [Agent] agent Agent to be connected
     # @param [Adhearsion::Call] call Caller to be connected
     def connect(agent, queued_call)
+      unless queued_call.active?
+        logger.warn "Inactive queued call found in #connect"
+        return_agent agent
+      end
+
       logger.info "Connecting #{agent} with #{remote_party queued_call}"
       case @connection_type
       when :call
         call_agent agent, queued_call
       when :bridge
+        unless agent.call.active?
+          logger.warn "Inactive agent call found in #connect, returning caller to queue"
+          priority_enqueue queued_call
+        end
         bridge_agent agent, queued_call
+      end
+    rescue *ENDED_CALL_EXCEPTIONS
+      ignoring_ended_calls do
+        if queued_call.active?
+          logger.warn "Dead call exception in #connect but queued_call still alive, reinserting into queue"
+          priority_enqueue queued_call
+        end
+      end
+      ignoring_ended_calls do
+        if agent.call && agent.call.active?
+          logger.warn "Dead call exception in #connect but agent call still alive, reinserting into queue"
+          return_agent agent
+        end
       end
     end
 
