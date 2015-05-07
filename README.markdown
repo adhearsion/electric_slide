@@ -18,14 +18,17 @@ TODO:
 * Example for using Matrioska to offer Agents and Callers interactivity while waiting
 * How to handle MOH
 
+## WARNING!
+
+While you can have ElectricSlide keep track of custom queues, it is recommended to use the built-in CallQueue object.
+
+The authors of ElectricSlide recommend NOT to subclass, monkeypatch, or otherwise alter the CallQueue implementation, as the likelihood of creating subtle race conditions is high.
+
 Example Queue
 -------------
 
 ```ruby
 my_queue = ElectricSlide.create :my_queue, ElectricSlide::CallQueue
-# While you can have ElectricSlide keep track of custom queues, it is recommended to use the built-in CallQueue object
-# NOTE! The authors of ElectricSlide recommend NOT to subclass, monkeypatch, or otherwise alter the CallQueue implementation, as
-# the likelihood of creating race conditions is high.
 
 # Another way to get a handle on a queue
 ElectricSlide.create :my_queue
