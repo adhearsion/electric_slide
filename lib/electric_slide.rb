@@ -15,16 +15,20 @@ class ElectricSlide
   end
 
   def create(name, queue_class = nil, *args)
-    if @queues.key?(name)
-      fail "Queue with name #{name} already exists!"
-    else
-      queue_class ||= CallQueue
-      @queues[name] = queue_class.work *args
-    end
+    fail "Queue with name #{name} already exists!" if @queues.key? name
+
+    queue_class ||= CallQueue
+    @queues[name] = queue_class.work *args
+    # Return the queue instance or current actor
+    get_queue name
+  end
+
+  def get_queue!(name)
+    fail "Queue #{name} not found!" unless @queues.key?(name)
+    get_queue name
   end
 
   def get_queue(name)
-    fail "Queue #{name} not found!" unless @queues.key?(name)
     queue = @queues[name]
     if queue.respond_to? :actors
       # In case we have a Celluloid supervision group, get the current actor

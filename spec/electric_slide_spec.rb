@@ -34,7 +34,7 @@ describe ElectricSlide do
   end
 
   it "should raise if attempting to work with a queue that doesn't exist" do
-    expect { ElectricSlide.get_queue("does not exist!") }.to raise_error
+    expect { ElectricSlide.get_queue!("does not exist!") }.to raise_error
     expect { ElectricSlide.shutdown_queue("does not exist!") }.to raise_error
   end
 
