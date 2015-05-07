@@ -42,9 +42,7 @@ class EnterTheQueue < Adhearsion::CallController
     answer
 
     # Play music-on-hold to the caller until joined to an agent
-    # TODO: Create an ElectricSlide helper to wrap up this function
-    # with optional looping of playback
-    player = play 'http://moh-server.example.com/stream.mp3'
+    player = play 'http://moh-server.example.com/stream.mp3', repeat_times: 0
     call.on_joined do
       player.stop!
     end
