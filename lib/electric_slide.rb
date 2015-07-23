@@ -1,6 +1,21 @@
 # encoding: utf-8
 require 'celluloid'
 require 'singleton'
+
+require 'adhearsion/version'
+
+if Gem::Version.new(Adhearsion::VERSION) < Gem::Version.new('3.0.0')
+  # Backport https://github.com/adhearsion/adhearsion/commit/8c6855612c70dd822fb4e4c2006d1fdc9d05fe23 to avoid confusion around dead calls
+  require 'adhearsion/call'
+  class Adhearsion::Call::ActorProxy < Celluloid::ActorProxy
+    def active?
+      alive? && super
+    rescue Adhearsion::Call::ExpiredError
+      false
+    end
+  end
+end
+
 %w(
   call_queue
   plugin
