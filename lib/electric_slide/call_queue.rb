@@ -254,6 +254,8 @@ class ElectricSlide
       agent_call[:agent]  = agent
       agent_call[:queued_call] = queued_call
 
+      agent.call = agent_call
+
       # Stash the caller ID so we don't have to try to get it from a dead call object later
       queued_caller_id = remote_party queued_call
 
@@ -278,6 +280,8 @@ class ElectricSlide
       agent_call.on_end do |end_event|
         # Ensure we don't return an agent that was removed or paused
         conditionally_return_agent agent
+
+        agent.call = nil
 
         agent.callback :disconnect, self, agent_call, queued_call
 
