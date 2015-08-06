@@ -39,4 +39,33 @@ describe ElectricSlide::CallQueue do
   it "should raise when given an invalid Agent" do
     expect { queue.add_agent nil }.to raise_error
   end
+
+  describe '#call_agent' do
+    let(:queue) { ElectricSlide::CallQueue.new(connection_type: :call) }
+    let(:agent) { ElectricSlide::Agent.new }
+    let!(:agent_call) { Adhearsion::OutboundCall.new }
+
+    before do
+      allow(Adhearsion::OutboundCall).to receive(:new) { agent_call }
+      allow(agent).to receive(:dial_options_for) {
+        { confirm: double('ConfirmController') }
+      }
+
+      allow(call_a).to receive(:active?) { true }
+      allow(agent_call).to receive(:dial)
+      queue.connect(agent, call_a)
+    end
+
+    it "sets the agent's `call` attribute" do
+      expect(agent.call).to be agent_call
+    end
+
+    context 'when the call ends' do
+      it "unsets the agent's `call` attribute" do
+        expect {
+          agent_call << Punchblock::Event::End.new(reason: :hangup)
+        }.to change(agent, :call).from(agent_call).to(nil)
+      end
+    end
+  end
 end
