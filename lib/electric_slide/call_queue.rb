@@ -65,6 +65,7 @@ class ElectricSlide
     def checkout_agent
       agent = @strategy.checkout_agent
       agent.presence = :on_call if agent
+      agent.callback :presence_change, self, agent.call, agent.presence
       agent
     end
 
@@ -107,7 +108,7 @@ class ElectricSlide
       logger.info "Adding agent #{agent} to the queue"
       @agents << agent
       @strategy << agent if agent.presence == :available
-      agent.callback :agent_available, self, agent.call, nil if agent.presence == :available
+      agent.callback :presence_change, self, agent.call, agent.presence
 
       check_for_connections
     end
@@ -123,13 +124,11 @@ class ElectricSlide
       abort MissingAgentError.new('Agent is not in the queue. Unable to return agent.') unless get_agent(agent.id)
 
       agent.presence = status
+      agent.callback :presence_change, self, agent.call, agent.presence
       agent.address = address if address
 
       if agent.presence == :available
         @strategy << agent
-
-        agent.callback :agent_available, self, agent.call, nil
-
         check_for_connections
       end
       agent
