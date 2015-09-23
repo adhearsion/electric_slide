@@ -62,8 +62,15 @@ class ElectricSlide
     # @return {Agent}
     def checkout_agent
       agent = @strategy.checkout_agent
-      agent.presence = :busy
+      set_agent_presence :busy
       agent
+    end
+
+    def set_agent_presence(status)
+      if agent.presence != status
+        agent.presence = status
+        agent.callback :status_changed, self, agent.call, status
+      end
     end
 
     # Returns a copy of the set of agents that are known to the queue
@@ -103,6 +110,7 @@ class ElectricSlide
       logger.info "Adding agent #{agent} to the queue"
       @agents << agent unless @agents.include? agent
       @strategy << agent if agent.presence == :available
+
       check_for_connections
     end
 
@@ -113,7 +121,7 @@ class ElectricSlide
     # @param [String, Optional] address The {Agent}'s address. Only specified if it has changed
     def return_agent(agent, status = :available, address = nil)
       logger.debug "Returning #{agent} to the queue"
-      agent.presence = status
+      set_agent_presence status
       agent.address = address if address
 
       if agent.presence == :available
@@ -199,6 +207,8 @@ class ElectricSlide
       ignoring_ended_calls do
         if agent.call && agent.call.active?
           logger.warn "Dead call exception in #connect but agent call still alive, reinserting into queue"
+          agent.callback :connection_failed, self, agent.call, queued_call
+
           return_agent agent
         end
       end
@@ -288,6 +298,8 @@ class ElectricSlide
         unless connected
           if queued_call.alive? && queued_call.active?
             ignoring_ended_calls { priority_enqueue queued_call }
+            agent.callback :connection_failed, self, agent_call, queued_call
+
             logger.warn "Call did not connect to agent! Agent #{agent.id} call ended with #{end_event.reason}; reinserting caller #{queued_caller_id} into queue"
           else
             logger.warn "Caller #{queued_caller_id} hung up before being connected to an agent."
@@ -320,6 +332,8 @@ class ElectricSlide
     rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
         if agent.call.active?
+          agent.callback :connection_failed, self, agent.call, queued_call
+
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
           conditionally_return_agent agent, :auto
         else
