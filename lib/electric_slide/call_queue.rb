@@ -5,6 +5,8 @@ require 'electric_slide/agent_strategy/longest_idle'
 
 class ElectricSlide
   class CallQueue
+    DuplicateAgentError = Class.new(StandardError)
+
     include Celluloid
     ENDED_CALL_EXCEPTIONS = [
       Adhearsion::Call::Hangup,
@@ -89,6 +91,8 @@ class ElectricSlide
     # @param [Agent] agent The agent to be added to the queue
     def add_agent(agent)
       abort ArgumentError.new("#add_agent called with nil object") if agent.nil?
+      abort DuplicateAgentError.new("Agent is already in the queue") if get_agent(agent.id)
+
       case @connection_type
       when :call
         abort ArgumentError.new("Agent has no callable address") unless agent.address
@@ -101,7 +105,7 @@ class ElectricSlide
       end
 
       logger.info "Adding agent #{agent} to the queue"
-      @agents << agent unless @agents.include? agent
+      @agents << agent
       @strategy << agent if agent.presence == :available
       check_for_connections
     end
