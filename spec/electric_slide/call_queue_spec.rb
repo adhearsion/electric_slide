@@ -68,4 +68,21 @@ describe ElectricSlide::CallQueue do
       end
     end
   end
+
+  describe '#add_agent' do
+    let(:queue) { ElectricSlide::CallQueue.new }
+    let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com') }
+
+    context 'when given an agent already in the queue' do
+      before do
+        queue.add_agent(agent)
+      end
+
+      it 'should raise an error' do
+        expect{
+          queue.add_agent(agent)
+        }.to raise_error(ElectricSlide::CallQueue::DuplicateAgentError)
+      end
+    end
+  end
 end
