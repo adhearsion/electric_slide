@@ -26,6 +26,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'countdownlatch'
   s.add_runtime_dependency 'activesupport'
   s.add_development_dependency 'rspec', ['>= 2.5.0']
+  s.add_development_dependency 'timecop'
   s.add_development_dependency 'ci_reporter'
   s.add_development_dependency 'guard'
   s.add_development_dependency 'guard-rspec'

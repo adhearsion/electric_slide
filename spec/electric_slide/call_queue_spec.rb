@@ -4,7 +4,7 @@ require 'spec_helper'
 describe ElectricSlide::CallQueue do
   let(:queue) { ElectricSlide::CallQueue.new }
 
-  context "with calls queued" do
+  context "enqueuing calls" do
     let(:call_a) { dummy_call }
     let(:call_b) { dummy_call }
     let(:call_c) { dummy_call }
@@ -33,6 +33,13 @@ describe ElectricSlide::CallQueue do
       queue.abandon call_a
       expect(queue.get_next_caller).to be call_b
     end
+
+    it "records the time in the :electric_slide_enqueued_at call variable on the queued call" do
+      enqueue_time = DateTime.new(2015, 9, 30, 15, 0, 23)
+      Timecop.freeze enqueue_time
+      queue.enqueue call_a
+      expect(call_a[:electric_slide_enqueued_at]).to eq(enqueue_time)
+    end
   end
 
   it "should raise when given an invalid connection type" do
@@ -58,6 +65,7 @@ describe ElectricSlide::CallQueue do
 
     context "with connection type :call" do
       let(:connection_type) { :call }
+      let(:connected_time) { DateTime.now }
 
       before do
         allow(Adhearsion::OutboundCall).to receive(:new) { agent_call }
@@ -68,11 +76,15 @@ describe ElectricSlide::CallQueue do
         allow(queued_call).to receive(:active?) { true }
         allow(agent_call).to receive(:dial)
         queue.connect(queue.checkout_agent, queued_call)
-        queued_call << Punchblock::Event::Joined.new
+        queued_call << Punchblock::Event::Joined.new(timestamp: connected_time)
       end
 
       it "sets the agent's `call` attribute" do
         expect(agent.call).to be agent_call
+      end
+
+      it "records the connection time in the :electric_slide_connected_at call variable on the queued call" do
+        expect(queued_call[:electric_slide_connected_at]).to eq(connected_time)
       end
 
       context 'when the call ends' do
