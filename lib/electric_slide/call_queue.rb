@@ -152,6 +152,7 @@ class ElectricSlide
     def priority_enqueue(call)
       # Don't reset the enqueue time in case this is a re-insert on agent failure
       call[:electric_slide_enqueued_at] ||= DateTime.now
+      call.on_end { remove_call call }
       @queue.unshift call
 
       check_for_connections
@@ -163,6 +164,7 @@ class ElectricSlide
       ignoring_ended_calls do
         logger.info "Adding call from #{remote_party call} to the queue"
         call[:electric_slide_enqueued_at] = DateTime.now
+        call.on_end { remove_call call }
         @queue << call unless @queue.include? call
 
         check_for_connections
@@ -171,8 +173,12 @@ class ElectricSlide
 
     # Remove a waiting call from the queue. Used if the caller hangs up or is otherwise removed.
     # @param [Adhearsion::Call] call Caller to be removed from the queue
-    def abandon(call)
-      ignoring_ended_calls { logger.info "Caller #{remote_party call} has abandoned the queue" }
+    def remove_call(call)
+      ignoring_ended_calls do
+        unless call[:electric_slide_connected_at]
+          logger.info "Caller #{remote_party call} has abandoned the queue"
+        end
+      end
       @queue.delete call
     end
 
