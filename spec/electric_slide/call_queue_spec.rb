@@ -85,4 +85,17 @@ describe ElectricSlide::CallQueue do
       end
     end
   end
+
+  describe '#return_agent' do
+    let(:queue) { ElectricSlide::CallQueue.new }
+    let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com') }
+
+    context 'when given an agent not in the queue' do
+      it 'should raise an error' do
+        expect{
+          queue.return_agent(agent)
+        }.to raise_error(ElectricSlide::CallQueue::MissingAgentError)
+      end
+    end
+  end
 end
