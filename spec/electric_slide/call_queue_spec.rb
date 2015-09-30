@@ -103,6 +103,11 @@ describe ElectricSlide::CallQueue do
             agent_call << Punchblock::Event::End.new(reason: :hangup)
             expect(queue.checkout_agent).to eql(nil)
           end
+
+          it "sets the agent's presence to :after_call" do
+            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            expect(queue.get_agent(agent.id).presence).to eql(:after_call)
+          end
         end
       end
     end
@@ -143,7 +148,7 @@ describe ElectricSlide::CallQueue do
 
   describe '#return_agent' do
     let(:queue) { ElectricSlide::CallQueue.new }
-    let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com', presence: :busy) }
+    let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com', presence: :on_call) }
 
     context 'when the agent is a member of the queue' do
       before do
@@ -153,7 +158,7 @@ describe ElectricSlide::CallQueue do
       it "sets the agent presence available" do
         expect {
           queue.return_agent agent
-        }.to change(agent, :presence).from(:busy).to(:available)
+        }.to change(agent, :presence).from(:on_call).to(:available)
       end
 
       it "makes the agent available to take calls" do
@@ -166,7 +171,7 @@ describe ElectricSlide::CallQueue do
         it "reflects that status on the agent" do
           expect {
             queue.return_agent agent, :after_call
-          }.to change(agent, :presence).from(:busy).to(:after_call)
+          }.to change(agent, :presence).from(:on_call).to(:after_call)
         end
 
         it "does not make the agent available to take calls" do

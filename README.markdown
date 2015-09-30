@@ -90,6 +90,12 @@ agent = ElectricSlide::Agent.new options
 ElectricSlide.update_agent 1, agent
 ```
 
+The possible presence states an Agent may be in are:
+
+* `:available` - Waiting for a call
+* `:on_call` - Currently connected to a call
+* `:after_call` - In a quiet period after completing a call and before being made available again. This is only encountered with a manual agent return strategy.
+
 Switching connection types
 --------------------------
 

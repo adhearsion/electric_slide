@@ -5,7 +5,7 @@ class ElectricSlide::Agent
   # @param [Hash] opts Agent parameters
   # @option opts [String] :id The Agent's ID
   # @option opts [String] :address The Agent's contact address
-  # @option opts [Symbol] :presence The Agent's current presence. Must be one of :available, :on_call, :away, :offline
+  # @option opts [Symbol] :presence The Agent's current presence. Must be one of :available, :on_call, :after_call, :unavailable
   def initialize(opts = {})
     @id = opts[:id]
     @address = opts[:address]
@@ -17,7 +17,6 @@ class ElectricSlide::Agent
     instance_exec *args, &callback if callback && callback.respond_to?(:call)
   end
 
-
   # Provide a block to be called when this agent is connected to a caller
   # The block will be passed the queue, the agent call and the client call
   def self.on_connect(&block)
@@ -28,6 +27,10 @@ class ElectricSlide::Agent
   # The block will be passed the queue, the agent call and the client call
   def self.on_disconnect(&block)
     @disconnect_callback = block
+  end
+
+  def on_call?
+    @presence == :on_call
   end
 
   # Called to provide options for calling this agent that are passed to #dial

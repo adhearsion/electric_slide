@@ -60,11 +60,11 @@ class ElectricSlide
       @strategy.available_agent_summary
     end
 
-    # Assigns the first available agent, marking the agent :busy
+    # Assigns the first available agent, marking the agent :on_call
     # @return {Agent}
     def checkout_agent
       agent = @strategy.checkout_agent
-      agent.presence = :busy if agent
+      agent.presence = :on_call if agent
       agent
     end
 
@@ -214,11 +214,12 @@ class ElectricSlide
     def conditionally_return_agent(agent, return_method = @agent_return_method)
       raise ArgumentError, "Invalid requeue method; must be one of #{AGENT_RETURN_METHODS.join ','}" unless AGENT_RETURN_METHODS.include? return_method
 
-      if agent && @agents.include?(agent) && agent.presence == :busy && return_method == :auto
+      if agent && @agents.include?(agent) && agent.on_call? && return_method == :auto
         logger.info "Returning agent #{agent.id} to queue"
         return_agent agent
       else
         logger.debug "Not returning agent #{agent.inspect} to the queue"
+        return_agent agent, :after_call
       end
     end
 
