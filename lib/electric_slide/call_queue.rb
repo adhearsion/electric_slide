@@ -64,7 +64,7 @@ class ElectricSlide
     # @return {Agent}
     def checkout_agent
       agent = @strategy.checkout_agent
-      agent.presence = :busy
+      agent.presence = :busy if agent
       agent
     end
 

@@ -9,7 +9,7 @@ class ElectricSlide::Agent
   def initialize(opts = {})
     @id = opts[:id]
     @address = opts[:address]
-    @presence = opts[:presence]
+    @presence = opts[:presence] || :available
   end
 
   def callback(type, *args)
