@@ -17,6 +17,7 @@ if Gem::Version.new(Adhearsion::VERSION) < Gem::Version.new('3.0.0')
 end
 
 %w(
+  agent
   call_queue
   plugin
 ).each { |f| require "electric_slide/#{f}" }
