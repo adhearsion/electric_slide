@@ -38,7 +38,6 @@ class ElectricSlide
       raise ArgumentError, "Invalid connection type; must be one of #{CONNECTION_TYPES.join ','}" unless CONNECTION_TYPES.include? @connection_type
       raise ArgumentError, "Invalid requeue method; must be one of #{AGENT_RETURN_METHODS.join ','}" unless AGENT_RETURN_METHODS.include? @agent_return_method
 
-      @free_agents = [] # Needed to keep track of waiting order
       @agents = []      # Needed to keep track of global list of agents
       @queue = []       # Calls waiting for an agent
 
