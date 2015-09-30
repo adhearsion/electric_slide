@@ -45,9 +45,14 @@ describe ElectricSlide::CallQueue do
 
   describe '#connect' do
     let(:queue) { ElectricSlide::CallQueue.new(connection_type: connection_type) }
-    let(:agent) { ElectricSlide::Agent.new }
+    let(:agent_id) { '123' }
+    let(:agent) { ElectricSlide::Agent.new id: agent_id, address: '123', presence: :available }
     let!(:agent_call) { Adhearsion::OutboundCall.new }
     let(:queued_call) { dummy_call }
+
+    before do
+      queue.add_agent agent
+    end
 
     context "with connection type :call" do
       let(:connection_type) { :call }
@@ -60,7 +65,8 @@ describe ElectricSlide::CallQueue do
 
         allow(queued_call).to receive(:active?) { true }
         allow(agent_call).to receive(:dial)
-        queue.connect(agent, queued_call)
+        queue.connect(queue.checkout_agent, queued_call)
+        queued_call << Punchblock::Event::Joined.new
       end
 
       it "sets the agent's `call` attribute" do
