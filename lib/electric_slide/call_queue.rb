@@ -5,6 +5,7 @@ require 'electric_slide/agent_strategy/longest_idle'
 
 class ElectricSlide
   class CallQueue
+    MissingAgentError = Class.new(StandardError)
     DuplicateAgentError = Class.new(StandardError)
 
     include Celluloid
@@ -116,6 +117,9 @@ class ElectricSlide
     # @param [String, Optional] address The {Agent}'s address. Only specified if it has changed
     def return_agent(agent, status = :available, address = nil)
       logger.debug "Returning #{agent} to the queue"
+
+      abort MissingAgentError.new('Agent is not in the queue. Unable to return agent.') unless get_agent(agent.id)
+
       agent.presence = status
       agent.address = address if address
 
