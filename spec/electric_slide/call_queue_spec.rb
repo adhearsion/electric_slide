@@ -43,34 +43,40 @@ describe ElectricSlide::CallQueue do
     expect { queue.add_agent nil }.to raise_error(ArgumentError)
   end
 
-  describe '#call_agent' do
-    let(:queue) { ElectricSlide::CallQueue.new(connection_type: :call) }
+  describe '#connect' do
+    let(:queue) { ElectricSlide::CallQueue.new(connection_type: connection_type) }
     let(:agent) { ElectricSlide::Agent.new }
     let!(:agent_call) { Adhearsion::OutboundCall.new }
     let(:queued_call) { dummy_call }
 
-    before do
-      allow(Adhearsion::OutboundCall).to receive(:new) { agent_call }
-      allow(agent).to receive(:dial_options_for) {
-        { confirm: double('ConfirmController') }
-      }
+    context "with connection type :call" do
+      let(:connection_type) { :call }
 
-      allow(queued_call).to receive(:active?) { true }
-      allow(agent_call).to receive(:dial)
-      queue.connect(agent, queued_call)
-    end
+      before do
+        allow(Adhearsion::OutboundCall).to receive(:new) { agent_call }
+        allow(agent).to receive(:dial_options_for) {
+          { confirm: double('ConfirmController') }
+        }
 
-    it "sets the agent's `call` attribute" do
-      expect(agent.call).to be agent_call
-    end
+        allow(queued_call).to receive(:active?) { true }
+        allow(agent_call).to receive(:dial)
+        queue.connect(agent, queued_call)
+      end
 
-    context 'when the call ends' do
-      it "unsets the agent's `call` attribute" do
-        expect {
-          agent_call << Punchblock::Event::End.new(reason: :hangup)
-        }.to change(agent, :call).from(agent_call).to(nil)
+      it "sets the agent's `call` attribute" do
+        expect(agent.call).to be agent_call
+      end
+
+      context 'when the call ends' do
+        it "unsets the agent's `call` attribute" do
+          expect {
+            agent_call << Punchblock::Event::End.new(reason: :hangup)
+          }.to change(agent, :call).from(agent_call).to(nil)
+        end
       end
     end
+
+    context "with connection type :bridge"
   end
 
   describe '#add_agent' do
