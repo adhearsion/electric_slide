@@ -106,7 +106,39 @@ describe ElectricSlide::CallQueue do
 
   describe '#return_agent' do
     let(:queue) { ElectricSlide::CallQueue.new }
-    let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com') }
+    let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com', presence: :busy) }
+
+    context 'when the agent is a member of the queue' do
+      before do
+        queue.add_agent agent
+      end
+
+      it "sets the agent presence available" do
+        expect {
+          queue.return_agent agent
+        }.to change(agent, :presence).from(:busy).to(:available)
+      end
+
+      it "makes the agent available to take calls" do
+        expect {
+          queue.return_agent agent
+        }.to change(queue, :checkout_agent).from(nil).to(agent)
+      end
+
+      context "when returned with some presence other than available" do
+        it "reflects that status on the agent" do
+          expect {
+            queue.return_agent agent, :after_call
+          }.to change(agent, :presence).from(:busy).to(:after_call)
+        end
+
+        it "does not make the agent available to take calls" do
+          expect {
+            queue.return_agent agent, :after_call
+          }.to_not change { queue.checkout_agent }
+        end
+      end
+    end
 
     context 'when given an agent not in the queue' do
       it 'should raise an error' do
