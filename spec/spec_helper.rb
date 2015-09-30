@@ -5,11 +5,16 @@ Thread.abort_on_exception = true
   adhearsion
   electric_slide
   rspec/core
+  timecop
 ).each { |r| require r }
 
 RSpec.configure do |config|
   config.filter_run focus: true
   config.run_all_when_everything_filtered = true
+
+  config.after :each do
+    Timecop.return
+  end
 end
 
 def dummy_call

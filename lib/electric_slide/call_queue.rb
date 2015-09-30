@@ -151,7 +151,7 @@ class ElectricSlide
     # @param [Adhearsion::Call] call Caller to be added to the queue
     def priority_enqueue(call)
       # Don't reset the enqueue time in case this is a re-insert on agent failure
-      call[:enqueue_time] ||= Time.now
+      call[:electric_slide_enqueued_at] ||= DateTime.now
       @queue.unshift call
 
       check_for_connections
@@ -162,7 +162,7 @@ class ElectricSlide
     def enqueue(call)
       ignoring_ended_calls do
         logger.info "Adding call from #{remote_party call} to the queue"
-        call[:enqueue_time] = Time.now
+        call[:electric_slide_enqueued_at] = DateTime.now
         @queue << call unless @queue.include? call
 
         check_for_connections
@@ -242,13 +242,13 @@ class ElectricSlide
     end
 
   private
+
     # Get the caller ID of the remote party.
     # If this is an OutboundCall, use Call#to
     # Otherwise, use Call#from
     def remote_party(call)
       call.is_a?(Adhearsion::OutboundCall) ? call.to : call.from
     end
-
 
     # @private
     def ignoring_ended_calls
@@ -283,7 +283,10 @@ class ElectricSlide
 
       # Track whether the agent actually talks to the queued_call
       connected = false
-      queued_call.on_joined { connected = true }
+      queued_call.on_joined do |event|
+        connected = true
+        queued_call[:electric_slide_connected_at] = event.timestamp
+      end
 
       agent_call.on_end do |end_event|
         # Ensure we don't return an agent that was removed or paused
