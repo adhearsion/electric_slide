@@ -44,7 +44,9 @@ describe ElectricSlide::CallQueue do
   end
 
   describe '#connect' do
-    let(:queue) { ElectricSlide::CallQueue.new(connection_type: connection_type) }
+    let(:agent_return_method) { :auto }
+
+    let(:queue) { ElectricSlide::CallQueue.new(connection_type: connection_type, agent_return_method: agent_return_method) }
     let(:agent_id) { '123' }
     let(:agent) { ElectricSlide::Agent.new id: agent_id, address: '123', presence: :available }
     let!(:agent_call) { Adhearsion::OutboundCall.new }
@@ -78,6 +80,29 @@ describe ElectricSlide::CallQueue do
           expect {
             agent_call << Punchblock::Event::End.new(reason: :hangup)
           }.to change(agent, :call).from(agent_call).to(nil)
+        end
+
+        context "when the return strategy is :auto" do
+          let(:agent_return_method) { :auto }
+
+          it "makes the agent available for a call" do
+            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            expect(queue.checkout_agent).to eql(agent)
+          end
+
+          it "sets the agent's presence to :available" do
+            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            expect(queue.get_agent(agent.id).presence).to eql(:available)
+          end
+        end
+
+        context "when the return strategy is :manual" do
+          let(:agent_return_method) { :manual }
+
+          it "does not make the agent available for a call" do
+            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            expect(queue.checkout_agent).to eql(nil)
+          end
         end
       end
     end
