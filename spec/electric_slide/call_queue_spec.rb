@@ -30,7 +30,7 @@ describe ElectricSlide::CallQueue do
     it "should remove a caller who abandons the queue" do
       queue.enqueue call_a
       queue.enqueue call_b
-      queue.abandon call_a
+      call_a << Punchblock::Event::End.new(reason: :hangup)
       expect(queue.get_next_caller).to be call_b
     end
 
