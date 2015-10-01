@@ -64,8 +64,10 @@ class ElectricSlide
     # @return {Agent}
     def checkout_agent
       agent = @strategy.checkout_agent
-      agent.presence = :on_call if agent
-      agent.callback :presence_change, self, agent.call, agent.presence
+      if agent
+        agent.presence = :on_call
+        agent.callback :presence_change, self, agent.call, agent.presence
+      end
       agent
     end
 
