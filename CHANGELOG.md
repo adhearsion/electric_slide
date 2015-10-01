@@ -9,4 +9,4 @@
   * Lots more test coverage - still bad
 
 # [0.2.0](https://github.com/adhearsion/electric_slide/compare/bb3b1b3e7f6d0926d0a9f462520e1f6d0c277adf...v0.2.0) - [2015-07-23](https://rubygems.org/gems/adhearsion/versions/0.2.0)
-  * ¯\_(ツ)_/¯
+  * ¯\\_(ツ)_/¯
