@@ -90,6 +90,9 @@ class ElectricSlide
 
     # Registers an agent to the queue
     # @param [Agent] agent The agent to be added to the queue
+    # @raise ArgumentError if the agent is malformed
+    # @raise DuplicateAgentError if this agent ID already exists
+    # @see #update_agent
     def add_agent(agent)
       abort ArgumentError.new("#add_agent called with nil object") if agent.nil?
       abort DuplicateAgentError.new("Agent is already in the queue") if get_agent(agent.id)
@@ -98,10 +101,12 @@ class ElectricSlide
       when :call
         abort ArgumentError.new("Agent has no callable address") unless agent.address
       when :bridge
-        abort ArgumentError.new("Agent has no active call") unless agent.call && agent.call.active?
+        ensure_bridged_agent_call_alive agent
+
         unless agent.call[:electric_slide_callback_set]
-          agent.call.on_end { remove_agent agent }
+          queue = self
           agent.call[:electric_slide_callback_set] = true
+          agent.call.on_end { queue.return_agent agent, :unavailable }
         end
       end
 
@@ -127,9 +132,13 @@ class ElectricSlide
       agent.callback :presence_change, self, agent.call, agent.presence
       agent.address = address if address
 
-      if agent.presence == :available
+      case agent.presence
+      when :available
+        ensure_bridged_agent_call_alive agent
         @strategy << agent
         check_for_connections
+      when :unavailable
+        @strategy.delete agent
       end
       agent
     end
@@ -349,9 +358,6 @@ class ElectricSlide
 
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
           conditionally_return_agent agent, :auto
-        else
-          # Agent's call has ended, so remove him from the queue
-          remove_agent agent
         end
       end
 
@@ -360,6 +366,13 @@ class ElectricSlide
           priority_enqueue queued_call
           logger.warn "Call failed to connect to Agent #{agent.id} due to agent hangup; reinserting caller #{queued_caller_id} into queue"
         end
+      end
+    end
+
+    # @private
+    def ensure_bridged_agent_call_alive(agent)
+      if agent.presence == :available && @connection_type == :bridge
+        abort ArgumentError.new("Agent has no active call") unless agent.call && agent.call.active?
       end
     end
   end
