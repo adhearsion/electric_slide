@@ -315,7 +315,7 @@ class ElectricSlide
         agent.callback :disconnect, self, agent_call, queued_call
 
         unless connected
-          if queued_call.alive? && queued_call.active?
+          if queued_call.active?
             ignoring_ended_calls { priority_enqueue queued_call }
             agent.callback :connection_failed, self, agent_call, queued_call
 
