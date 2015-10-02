@@ -2,7 +2,7 @@
 
 class ElectricSlide
   class Agent
-    attr_accessor :id, :address, :presence, :call, :connect_callback, :disconnect_callback, :connection_failed_callback, :presence_callback
+    attr_accessor :id, :address, :presence, :call
 
     # @param [Hash] opts Agent parameters
     # @option opts [String] :id The Agent's ID
@@ -34,7 +34,7 @@ class ElectricSlide
     # Provide a block to be called when this agent's presence changes
     # The block will be passed the queue, the agent call, and the new presence
     def self.on_presence_change(&block)
-      @presence_callback = block
+      @presence_change_callback = block
     end
 
     # Provide a block to be called when the agent connection to the callee fails
