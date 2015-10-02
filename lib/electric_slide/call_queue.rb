@@ -9,6 +9,7 @@ class ElectricSlide
     DuplicateAgentError = Class.new(StandardError)
 
     include Celluloid
+
     ENDED_CALL_EXCEPTIONS = [
       Adhearsion::Call::Hangup,
       Adhearsion::Call::ExpiredError,
