@@ -77,6 +77,7 @@ describe ElectricSlide::CallQueue do
         queue.add_agent agent
         queue.enqueue queued_call
         queued_call << Punchblock::Event::Joined.new(timestamp: connected_time)
+        agent_call << Punchblock::Event::Joined.new(timestamp: connected_time)
       end
 
       it "sets the agent's `call` attribute" do
@@ -119,6 +120,21 @@ describe ElectricSlide::CallQueue do
           it "sets the agent's presence to :after_call" do
             agent_call << Punchblock::Event::End.new(reason: :hangup)
             expect(queue.get_agent(agent.id).presence).to eql(:after_call)
+          end
+        end
+
+        context "with callbacks" do
+          after do
+            [:connect_callback, :disconnect_callback, :connection_failed_callback, :presence_change_callback].each do |callback|
+              ElectricSlide::Agent.send "#{callback}=", nil
+            end
+          end
+
+          it "invokes the presence change callback" do
+            called = false
+            ElectricSlide::Agent.on_presence_change { |queue, agent_call, presence| called = true }
+            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            expect(called).to be true
           end
         end
       end
