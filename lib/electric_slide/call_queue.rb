@@ -342,7 +342,7 @@ class ElectricSlide
         agent.callback :disconnect, self, agent.call, queued_call
         ignoring_ended_calls { queued_call.hangup }
         ignoring_ended_calls { conditionally_return_agent agent if agent.call && agent.call.active? }
-        agent.call[:queued_call] = nil
+        agent.call[:queued_call] = nil if agent.call
       end
 
       queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
