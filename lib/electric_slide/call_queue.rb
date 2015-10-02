@@ -106,9 +106,12 @@ class ElectricSlide
         ensure_bridged_agent_call_alive agent
 
         unless agent.call[:electric_slide_callback_set]
-          queue = self
           agent.call[:electric_slide_callback_set] = true
-          agent.call.on_end { queue.return_agent agent, :unavailable }
+          queue = self
+          agent.call.on_end do
+            agent.call = nil
+            queue.return_agent agent, :unavailable
+          end
         end
       end
 
