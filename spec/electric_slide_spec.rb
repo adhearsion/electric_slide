@@ -29,13 +29,13 @@ describe ElectricSlide do
 
     it "should not allow a second queue to be created with the same name" do
       ElectricSlide.create :fake
-      expect { ElectricSlide.create :fake }.to raise_error
+      expect { ElectricSlide.create :fake }.to raise_error(StandardError)
     end
   end
 
   it "should raise if attempting to work with a queue that doesn't exist" do
-    expect { ElectricSlide.get_queue!("does not exist!") }.to raise_error
-    expect { ElectricSlide.shutdown_queue("does not exist!") }.to raise_error
+    expect { ElectricSlide.get_queue!("does not exist!") }.to raise_error(StandardError)
+    expect { ElectricSlide.shutdown_queue("does not exist!") }.to raise_error(StandardError)
   end
 
 end
