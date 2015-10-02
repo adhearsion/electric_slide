@@ -63,7 +63,7 @@ end
 Adding an Agent to the Queue
 ----------------------------
 
-ElectricSlide expects to be given a objects that quack like an agent. You can use the built-in `ElectricSlide::Agent` class, or you can provide your own.
+ElectricSlide expects to be instances of the `ElectricSlide::Agent` class. This is designed to be extended with custom functionality when necessary.
 
 To add an agent who will receive calls whenever a call is enqueued, do something like this:
 
@@ -72,7 +72,7 @@ agent = ElectricSlide::Agent.new id: 1, address: 'sip:agent1@example.com', prese
 ElectricSlide.get_queue(:my_queue).add_agent agent
 ```
 
-To inform the queue that the agent is no longer available you *must* use the ElectricSlide queue interface. /Do not attempt to alter agent objects directly!/
+To inform the queue that the agent is no longer available you *must* use the ElectricSlide queue interface. **_Do not attempt to change agent objects directly!_**
 
 ```ruby
 ElectricSlide.update_agent 1, presence: offline
@@ -84,17 +84,20 @@ If it is more convenient, you may also pass `#update_agent` an Agent-like object
 options = {
   id: 1,
   address: 'sip:agent1@example.com',
-  presence: offline
+  presence: :unavailable
 }
 agent = ElectricSlide::Agent.new options
 ElectricSlide.update_agent 1, agent
 ```
 
-The possible presence states an Agent may be in are:
+The possible presence states for an Agent are:
 
 * `:available` - Waiting for a call
 * `:on_call` - Currently connected to a call
 * `:after_call` - In a quiet period after completing a call and before being made available again. This is only encountered with a manual agent return strategy.
+* `:unavailable` - Agent is not available (on break, offline, etc)
+
+Note that an `:unavailable` agent still counts as an agent in the queue, but will not be sent any calls. Make sure to remove agents, even unavailable ones, when agents sign out by using the `#remove_agent` method.
 
 Switching connection types
 --------------------------

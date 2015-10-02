@@ -64,7 +64,10 @@ class ElectricSlide
     # @return {Agent}
     def checkout_agent
       agent = @strategy.checkout_agent
-      agent.presence = :on_call if agent
+      if agent
+        agent.presence = :on_call
+        agent.callback :presence_change, self, agent.call, agent.presence
+      end
       agent
     end
 
@@ -89,6 +92,9 @@ class ElectricSlide
 
     # Registers an agent to the queue
     # @param [Agent] agent The agent to be added to the queue
+    # @raise ArgumentError if the agent is malformed
+    # @raise DuplicateAgentError if this agent ID already exists
+    # @see #update_agent
     def add_agent(agent)
       abort ArgumentError.new("#add_agent called with nil object") if agent.nil?
       abort DuplicateAgentError.new("Agent is already in the queue") if get_agent(agent.id)
@@ -97,16 +103,14 @@ class ElectricSlide
       when :call
         abort ArgumentError.new("Agent has no callable address") unless agent.address
       when :bridge
-        abort ArgumentError.new("Agent has no active call") unless agent.call && agent.call.active?
-        unless agent.call[:electric_slide_callback_set]
-          agent.call.on_end { remove_agent agent }
-          agent.call[:electric_slide_callback_set] = true
-        end
+        bridged_agent_health_check agent
       end
 
       logger.info "Adding agent #{agent} to the queue"
       @agents << agent
       @strategy << agent if agent.presence == :available
+      agent.callback :presence_change, self, agent.call, agent.presence
+
       check_for_connections
     end
 
@@ -121,11 +125,17 @@ class ElectricSlide
       abort MissingAgentError.new('Agent is not in the queue. Unable to return agent.') unless get_agent(agent.id)
 
       agent.presence = status
+      agent.callback :presence_change, self, agent.call, agent.presence
       agent.address = address if address
 
-      if agent.presence == :available
+      case agent.presence
+      when :available
+        bridged_agent_health_check agent
+
         @strategy << agent
         check_for_connections
+      when :unavailable
+        @strategy.delete agent
       end
       agent
     end
@@ -196,7 +206,7 @@ class ElectricSlide
       when :call
         call_agent agent, queued_call
       when :bridge
-        unless agent.call.active?
+        unless agent.call && agent.call.active?
           logger.warn "Inactive agent call found in #connect, returning caller to queue"
           priority_enqueue queued_call
         end
@@ -212,6 +222,8 @@ class ElectricSlide
       ignoring_ended_calls do
         if agent.call && agent.call.active?
           logger.warn "Dead call exception in #connect but agent call still alive, reinserting into queue"
+          agent.callback :connection_failed, self, agent.call, queued_call
+
           return_agent agent
         end
       end
@@ -289,7 +301,7 @@ class ElectricSlide
 
       # Track whether the agent actually talks to the queued_call
       connected = false
-      queued_call.on_joined do |event|
+      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
         connected = true
         queued_call[:electric_slide_connected_at] = event.timestamp
       end
@@ -305,6 +317,8 @@ class ElectricSlide
         unless connected
           if queued_call.alive? && queued_call.active?
             ignoring_ended_calls { priority_enqueue queued_call }
+            agent.callback :connection_failed, self, agent_call, queued_call
+
             logger.warn "Call did not connect to agent! Agent #{agent.id} call ended with #{end_event.reason}; reinserting caller #{queued_caller_id} into queue"
           else
             logger.warn "Caller #{queued_caller_id} hung up before being connected to an agent."
@@ -327,8 +341,12 @@ class ElectricSlide
       agent.call.register_tmp_handler :event, Punchblock::Event::Unjoined do
         agent.callback :disconnect, self, agent.call, queued_call
         ignoring_ended_calls { queued_call.hangup }
-        ignoring_ended_calls { conditionally_return_agent agent if agent.call.active? }
-        agent.call[:queued_call] = nil
+        ignoring_ended_calls { conditionally_return_agent agent if agent.call && agent.call.active? }
+        agent.call[:queued_call] = nil if agent.call
+      end
+
+      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
+        queued_call[:electric_slide_connected_at] = event.timestamp
       end
 
       agent.callback :connect, self, agent.call, queued_call
@@ -336,12 +354,11 @@ class ElectricSlide
       agent.join queued_call if queued_call.active?
     rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
-        if agent.call.active?
+        if agent.call && agent.call.active?
+          agent.callback :connection_failed, self, agent.call, queued_call
+
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
           conditionally_return_agent agent, :auto
-        else
-          # Agent's call has ended, so remove him from the queue
-          remove_agent agent
         end
       end
 
@@ -349,6 +366,21 @@ class ElectricSlide
         if queued_call.active?
           priority_enqueue queued_call
           logger.warn "Call failed to connect to Agent #{agent.id} due to agent hangup; reinserting caller #{queued_caller_id} into queue"
+        end
+      end
+    end
+
+    # @private
+    def bridged_agent_health_check(agent)
+      if agent.presence == :available && @connection_type == :bridge
+        abort ArgumentError.new("Agent has no active call") unless agent.call && agent.call.active?
+        unless agent.call[:electric_slide_callback_set]
+          agent.call[:electric_slide_callback_set] = true
+          queue = self
+          agent.call.on_end do
+            agent.call = nil
+            queue.return_agent agent, :unavailable
+          end
         end
       end
     end
