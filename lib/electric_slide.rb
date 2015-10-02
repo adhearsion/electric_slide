@@ -56,7 +56,7 @@ class ElectricSlide
 
   def shutdown_queue(name)
     queue = get_queue name
-    queue.terminate
+    queue.terminate if queue
     @queues.delete name
   end
 

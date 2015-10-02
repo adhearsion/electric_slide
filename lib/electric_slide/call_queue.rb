@@ -27,12 +27,14 @@ class ElectricSlide
       :manual,
     ].freeze
 
+    attr_reader :agent_strategy, :connection_type, :agent_return_method
+
     def self.work(*args)
       self.supervise *args
     end
 
     def initialize(opts = {})
-      agent_strategy   = opts[:agent_strategy]  || AgentStrategy::LongestIdle
+      @agent_strategy   = opts[:agent_strategy]  || AgentStrategy::LongestIdle
       @connection_type = opts[:connection_type] || :call
       @agent_return_method = opts[:agent_return_method] || :auto
 
@@ -42,7 +44,7 @@ class ElectricSlide
       @agents = []      # Needed to keep track of global list of agents
       @queue = []       # Calls waiting for an agent
 
-      @strategy = agent_strategy.new
+      @strategy = @agent_strategy.new
     end
 
     # Checks whether an agent is available to take a call
