@@ -206,7 +206,7 @@ class ElectricSlide
       when :call
         call_agent agent, queued_call
       when :bridge
-        unless agent.call.active?
+        unless agent.call && agent.call.active?
           logger.warn "Inactive agent call found in #connect, returning caller to queue"
           priority_enqueue queued_call
         end
@@ -341,7 +341,7 @@ class ElectricSlide
       agent.call.register_tmp_handler :event, Punchblock::Event::Unjoined do
         agent.callback :disconnect, self, agent.call, queued_call
         ignoring_ended_calls { queued_call.hangup }
-        ignoring_ended_calls { conditionally_return_agent agent if agent.call.active? }
+        ignoring_ended_calls { conditionally_return_agent agent if agent.call && agent.call.active? }
         agent.call[:queued_call] = nil
       end
 
@@ -354,7 +354,7 @@ class ElectricSlide
       agent.join queued_call if queued_call.active?
     rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
-        if agent.call.active?
+        if agent.call && agent.call.active?
           agent.callback :connection_failed, self, agent.call, queued_call
 
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
