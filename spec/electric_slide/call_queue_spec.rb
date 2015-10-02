@@ -50,7 +50,7 @@ describe ElectricSlide::CallQueue do
     expect { queue.add_agent nil }.to raise_error(ArgumentError)
   end
 
-  describe '#connect' do
+  describe 'connecting agents to callers' do
     let(:agent_return_method) { :auto }
 
     let(:queue) { ElectricSlide::CallQueue.new(connection_type: connection_type, agent_return_method: agent_return_method) }
@@ -75,7 +75,7 @@ describe ElectricSlide::CallQueue do
       before do
         allow(agent_call).to receive(:dial)
         queue.add_agent agent
-        queue.connect(queue.checkout_agent, queued_call)
+        queue.enqueue queued_call
         queued_call << Punchblock::Event::Joined.new(timestamp: connected_time)
       end
 
