@@ -309,7 +309,7 @@ class ElectricSlide
 
       # Track whether the agent actually talks to the queued_call
       connected = false
-      queued_call.on_joined do |event|
+      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
         connected = true
         queued_call[:electric_slide_connected_at] = event.timestamp
       end
