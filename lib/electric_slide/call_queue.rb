@@ -103,16 +103,7 @@ class ElectricSlide
       when :call
         abort ArgumentError.new("Agent has no callable address") unless agent.address
       when :bridge
-        ensure_bridged_agent_call_alive agent
-
-        unless agent.call[:electric_slide_callback_set]
-          agent.call[:electric_slide_callback_set] = true
-          queue = self
-          agent.call.on_end do
-            agent.call = nil
-            queue.return_agent agent, :unavailable
-          end
-        end
+        bridged_agent_health_check agent
       end
 
       logger.info "Adding agent #{agent} to the queue"
@@ -139,7 +130,8 @@ class ElectricSlide
 
       case agent.presence
       when :available
-        ensure_bridged_agent_call_alive agent
+        bridged_agent_health_check agent
+
         @strategy << agent
         check_for_connections
       when :unavailable
@@ -379,9 +371,17 @@ class ElectricSlide
     end
 
     # @private
-    def ensure_bridged_agent_call_alive(agent)
+    def bridged_agent_health_check(agent)
       if agent.presence == :available && @connection_type == :bridge
         abort ArgumentError.new("Agent has no active call") unless agent.call && agent.call.active?
+        unless agent.call[:electric_slide_callback_set]
+          agent.call[:electric_slide_callback_set] = true
+          queue = self
+          agent.call.on_end do
+            agent.call = nil
+            queue.return_agent agent, :unavailable
+          end
+        end
       end
     end
   end
