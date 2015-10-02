@@ -30,12 +30,8 @@ class ElectricSlide
 
     attr_reader :agent_strategy, :connection_type, :agent_return_method
 
-    def self.work(*args)
-      self.supervise *args
-    end
-
     def initialize(opts = {})
-      @agent_strategy   = opts[:agent_strategy]  || AgentStrategy::LongestIdle
+      @agent_strategy  = opts[:agent_strategy]  || AgentStrategy::LongestIdle
       @connection_type = opts[:connection_type] || :call
       @agent_return_method = opts[:agent_return_method] || :auto
 
