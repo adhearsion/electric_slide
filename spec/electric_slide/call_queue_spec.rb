@@ -126,7 +126,7 @@ describe ElectricSlide::CallQueue do
         context "with callbacks" do
           after do
             [:connect_callback, :disconnect_callback, :connection_failed_callback, :presence_change_callback].each do |callback|
-              ElectricSlide::Agent.send "#{callback}=", nil
+              ElectricSlide::Agent.instance_variable_set "@#{callback}", nil
             end
           end
 
