@@ -323,10 +323,16 @@ describe ElectricSlide::CallQueue do
     end
 
     context 'when given an agent not in the queue' do
-      it 'should raise an error' do
-        expect{
-          queue.return_agent(agent)
-        }.to raise_error(ElectricSlide::CallQueue::MissingAgentError)
+      it 'should cleanly return false' do
+        expect(queue.return_agent(agent)).to be(false)
+      end
+
+      context 'when called with a bang' do
+        it 'should raise an error' do
+          expect{
+            queue.return_agent!(agent)
+          }.to raise_error(ElectricSlide::CallQueue::MissingAgentError)
+        end
       end
     end
   end

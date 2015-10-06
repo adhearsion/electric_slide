@@ -121,7 +121,7 @@ class ElectricSlide
     def return_agent(agent, status = :available, address = nil)
       logger.debug "Returning #{agent} to the queue"
 
-      abort MissingAgentError.new('Agent is not in the queue. Unable to return agent.') unless get_agent(agent.id)
+      return false unless get_agent(agent.id)
 
       agent.presence = status
       agent.callback :presence_change, self, agent.call, agent.presence
@@ -137,6 +137,13 @@ class ElectricSlide
         @strategy.delete agent
       end
       agent
+    end
+
+    # Marks an agent as available to take a call.
+    # @see #return_agent
+    # @raises [ElectricSlide::CallQueue::MissingAgentError] when the agent cannot be returned because they have been explicitly removed.
+    def return_agent!(*args)
+      return_agent(*args) || abort(MissingAgentError.new('Agent is not in the queue. Unable to return agent.'))
     end
 
     # Removes an agent from the queue entirely
