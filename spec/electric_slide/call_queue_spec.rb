@@ -76,19 +76,28 @@ describe ElectricSlide::CallQueue do
         allow(agent_call).to receive(:dial)
         queue.add_agent agent
         queue.enqueue queued_call
-        queued_call << Punchblock::Event::Joined.new(timestamp: connected_time)
-        agent_call << Punchblock::Event::Joined.new(timestamp: connected_time)
       end
 
       it "sets the agent's `call` attribute" do
         expect(agent.call).to be agent_call
       end
 
-      it "records the connection time in the :electric_slide_connected_at call variable on the queued call" do
-        expect(queued_call[:electric_slide_connected_at]).to eq(connected_time)
+      it 'records the agent in the `:agent` call variable on the queued call' do
+        expect(queued_call[:agent]).to eq(agent)
       end
 
       context 'when the call ends' do
+        let(:double_agent) { double(ElectricSlide::Agent, presence: :available).as_null_object }
+
+        before do
+          # add another agent so that it gets selected after the
+          # currently-selected agent's call ends; otherwise, the agent just
+          # gets returned and is immediately connected to the queued call,
+          # causing its state to change before the examples have a chance to
+          # check it
+          queue.add_agent double_agent
+        end
+
         it "unsets the agent's `call` attribute" do
           expect {
             agent_call << Punchblock::Event::End.new(reason: :hangup)
@@ -123,6 +132,25 @@ describe ElectricSlide::CallQueue do
           end
         end
 
+        context "when the agent's and caller's calls are not joined" do
+          context 'and the call ends' do
+            before do
+              queue.remove_agent(double_agent)
+
+              # prevent the agent from being returned to the queue so the queued
+              # call isn't grabbed by the agent again, changing queued call state
+              # before the example can check it
+              allow(agent).to receive(:presence).and_return(:unavailable)
+            end
+
+            it 'unsets the `:agent` call variable on the queued call' do
+              expect {
+                agent_call << Punchblock::Event::End.new(reason: :hangup)
+              }.to change{ queued_call[:agent] }.from(agent).to(nil)
+            end
+          end
+        end
+
         context "with callbacks" do
           after do
             [:connect_callback, :disconnect_callback, :connection_failed_callback, :presence_change_callback].each do |callback|
@@ -136,6 +164,17 @@ describe ElectricSlide::CallQueue do
             agent_call << Punchblock::Event::End.new(reason: :hangup)
             expect(called).to be true
           end
+        end
+      end
+
+      context "when the agent's and caller's calls are joined" do
+        before do
+          queued_call << Punchblock::Event::Joined.new(timestamp: connected_time)
+          agent_call << Punchblock::Event::Joined.new(timestamp: connected_time)
+        end
+
+        it "records the connection time in the :electric_slide_connected_at call variable on the queued call" do
+          expect(queued_call[:electric_slide_connected_at]).to eq(connected_time)
         end
       end
     end
@@ -154,6 +193,10 @@ describe ElectricSlide::CallQueue do
           queued_call << Punchblock::Event::Joined.new(timestamp: connected_time)
         end
         queue.enqueue queued_call
+      end
+
+      it 'records the agent in the `:agent` call variable on the queued call' do
+        expect(queued_call[:agent]).to eq(agent)
       end
 
       it "records the connection time in the :electric_slide_connected_at call variable on the queued call" do

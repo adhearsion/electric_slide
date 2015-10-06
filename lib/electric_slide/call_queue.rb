@@ -159,8 +159,12 @@ class ElectricSlide
     # to an agent, but the connection fails because the agent is not available.
     # @param [Adhearsion::Call] call Caller to be added to the queue
     def priority_enqueue(call)
-      # Don't reset the enqueue time in case this is a re-insert on agent failure
+      # In case this is a re-insert on agent failure...
+      # ... reset `:agent` call variable
+      call[:agent] = nil
+      # ... set, but don't reset, the enqueue time
       call[:electric_slide_enqueued_at] ||= DateTime.now
+
       call.on_end { remove_call call }
       @queue.unshift call
 
@@ -199,6 +203,8 @@ class ElectricSlide
         logger.warn "Inactive queued call found in #connect"
         return_agent agent
       end
+
+      queued_call[:agent] = agent
 
       logger.info "Connecting #{agent} with #{remote_party queued_call}"
       case @connection_type

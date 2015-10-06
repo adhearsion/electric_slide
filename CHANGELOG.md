@@ -1,4 +1,5 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+  * Set `:agent` call variable on queued call when connecting calls
   * API Breakage: Queues must now be Celluloid actors responding to the standard actor API. `ElectricSlide::CallQueue.work` is removed in favour of `.new`.
   * API Breakage: Prevent an unqueued agent from being returned to the queue - this avoids calls after logging out
   * API Breakage: An agent's presence should be :after_call if they are not automatically returned to being available
