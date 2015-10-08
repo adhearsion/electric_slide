@@ -1,5 +1,6 @@
 # encoding: utf-8
 require 'spec_helper'
+require 'electric_slide/agent_strategy/fixed_priority'
 
 describe ElectricSlide::CallQueue do
   let(:queue) { ElectricSlide::CallQueue.new }
@@ -40,10 +41,6 @@ describe ElectricSlide::CallQueue do
       queue.enqueue call_a
       expect(call_a[:electric_slide_enqueued_at]).to eq(enqueue_time)
     end
-  end
-
-  it "should raise when given an invalid connection type" do
-    expect { ElectricSlide::CallQueue.new connection_type: :blah }.to raise_error(ArgumentError)
   end
 
   it "should raise when given an invalid Agent" do
@@ -333,6 +330,90 @@ describe ElectricSlide::CallQueue do
             queue.return_agent!(agent)
           }.to raise_error(ElectricSlide::CallQueue::MissingAgentError)
         end
+      end
+    end
+  end
+
+  describe '#update' do
+    let(:queue) {
+      ElectricSlide::CallQueue.new(
+        agent_strategy: ElectricSlide::AgentStrategy::LongestIdle,
+        connection_type: :call,
+        agent_return_method: :auto
+      )
+    }
+
+    it 'updates all the given attributes' do
+      queue.update(
+        agent_strategy: ElectricSlide::AgentStrategy::FixedPriority,
+        connection_type: :bridge,
+        agent_return_method: :manual
+      )
+      expect(queue.agent_strategy).to eq(ElectricSlide::AgentStrategy::FixedPriority)
+      expect(queue.connection_type).to eq(:bridge)
+      expect(queue.agent_return_method).to eq(:manual)
+    end
+
+    context 'when given an unrecognized attribute' do
+      it 'does not raise an error' do
+        expect{
+          queue.update(foo: :bar)
+        }.to_not raise_exception
+      end
+    end
+
+    context 'when given `nil`' do
+      it 'does not raise an error' do
+        expect{
+          queue.update(foo: :bar)
+        }.to_not raise_exception
+      end
+    end
+  end
+
+  describe '#agent_strategy=' do
+    let(:queue) {
+      ElectricSlide::CallQueue.new(
+        agent_strategy: ElectricSlide::AgentStrategy::LongestIdle,
+        connection_type: :call,
+        agent_return_method: :auto
+      )
+    }
+
+    it 'returns the given strategy class' do
+      expect(queue.agent_strategy = ElectricSlide::AgentStrategy::FixedPriority).to eq(ElectricSlide::AgentStrategy::FixedPriority)
+    end
+
+    it 'assigns a new strategy' do
+      expect(ElectricSlide::AgentStrategy::FixedPriority).to receive(:new)
+      queue.agent_strategy = ElectricSlide::AgentStrategy::FixedPriority
+    end
+
+    it 'returns all agents to the queue (strategy)' do
+      agent = double(ElectricSlide::Agent, address: '100', presence: :available, priority: 100).as_null_object
+      queue.add_agent(agent)
+
+      queue.agent_strategy = ElectricSlide::AgentStrategy::FixedPriority
+      expect(queue.available_agent_summary).to eq({ total: 1, priorities: { 100 => 1 }})
+    end
+  end
+
+  describe '#connection_type=' do
+    context 'when given an invalid connection type' do
+      it 'raises an `InvalidConnectionType` exception' do
+        expect{
+          queue.connection_type = :party_line
+        }.to raise_exception(ElectricSlide::CallQueue::InvalidConnectionType)
+      end
+    end
+  end
+
+  describe '#agent_return_method=' do
+    context 'when given an invalid agent return method' do
+      it 'raises an `InvalidRequeueMethod` exception' do
+        expect{
+          queue.agent_return_method = :semiauto
+        }.to raise_exception(ElectricSlide::CallQueue::InvalidRequeueMethod)
       end
     end
   end

@@ -1,4 +1,7 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+  * Add support for changing queue attributes
+    * API Breakage: Setting queue connection type to an invalid value will now raise an `ElectricSlide::CallQueue::InvalidConnectionType` exception instead of `ArgumentError`
+    * API Breakage: Setting queue agent return method to an invalid value will now raise an `ElectricSlide::CallQueue::InvalidRequeueMethod` exception instead of `ArgumentError`
   * List created queues by name via `ElectricSlide.queues_by_name`
   * Set `:agent` call variable on queued call when connecting calls
   * API Breakage: Queues must now be Celluloid actors responding to the standard actor API. `ElectricSlide::CallQueue.work` is removed in favour of `.new`.
