@@ -26,9 +26,20 @@ class ElectricSlide
     def [](name)
       @registry[name]
     end
+
+    def names
+      @registry.names
+    end
   end
 
   @supervisor = Supervisor.run!(Celluloid::Registry.new)
+
+  def self.queues_by_name
+    @supervisor.names.inject({}) do |queues, name|
+      queues[name] = get_queue(name)
+      queues
+    end
+  end
 
   def self.create(name, queue_class = nil, *args)
     fail "Queue with name #{name} already exists!" if get_queue(name)

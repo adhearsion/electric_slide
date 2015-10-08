@@ -52,4 +52,34 @@ describe ElectricSlide do
       end
     end
   end
+
+  describe '::queues_by_name' do
+    before do
+      ElectricSlide.create :barbe
+      ElectricSlide.create :banana
+    end
+
+    after do
+      ElectricSlide.shutdown_queue :barbe
+      ElectricSlide.shutdown_queue :banana
+    end
+
+    it 'returns a hash of queues, with their names as keys' do
+      expect(ElectricSlide.queues_by_name).to eq({
+        barbe: ElectricSlide.get_queue(:barbe),
+        banana: ElectricSlide.get_queue(:banana)
+      })
+    end
+
+    context 'when there are no queues' do
+      before do
+        ElectricSlide.shutdown_queue :barbe
+        ElectricSlide.shutdown_queue :banana
+      end
+
+      it 'returns an empty hash' do
+        expect(ElectricSlide.queues_by_name).to eq({})
+      end
+    end
+  end
 end
