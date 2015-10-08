@@ -5,9 +5,6 @@ require 'electric_slide/agent_strategy/longest_idle'
 
 class ElectricSlide
   class CallQueue
-    MissingAgentError = Class.new(StandardError)
-    DuplicateAgentError = Class.new(StandardError)
-
     include Celluloid
 
     ENDED_CALL_EXCEPTIONS = [
@@ -28,20 +25,62 @@ class ElectricSlide
       :manual,
     ].freeze
 
+    Error = Class.new(StandardError)
+
+    MissingAgentError = Class.new(Error)
+    DuplicateAgentError = Class.new(Error)
+
+    class InvalidConnectionType < Error
+      def message
+        "Invalid connection type; must be one of #{CONNECTION_TYPES.join ','}"
+      end
+    end
+
+    class InvalidRequeueMethod < Error
+      def message
+        "Invalid requeue method; must be one of #{AGENT_RETURN_METHODS.join ','}"
+      end
+    end
+
     attr_reader :agent_strategy, :connection_type, :agent_return_method
 
     def initialize(opts = {})
-      @agent_strategy  = opts[:agent_strategy]  || AgentStrategy::LongestIdle
-      @connection_type = opts[:connection_type] || :call
-      @agent_return_method = opts[:agent_return_method] || :auto
-
-      raise ArgumentError, "Invalid connection type; must be one of #{CONNECTION_TYPES.join ','}" unless CONNECTION_TYPES.include? @connection_type
-      raise ArgumentError, "Invalid requeue method; must be one of #{AGENT_RETURN_METHODS.join ','}" unless AGENT_RETURN_METHODS.include? @agent_return_method
-
       @agents = []      # Needed to keep track of global list of agents
       @queue = []       # Calls waiting for an agent
 
+      update(
+        agent_strategy: opts[:agent_strategy] || AgentStrategy::LongestIdle,
+        connection_type: opts[:connection_type] || :call,
+        agent_return_method: opts[:agent_return_method] || :auto
+      )
+    end
+
+    def update(attrs)
+      attrs.each do |attr, value|
+        setter = "#{attr}="
+        send setter, value if respond_to?(setter)
+      end unless attrs.nil?
+    end
+
+    def agent_strategy=(new_agent_strategy)
+      @agent_strategy = new_agent_strategy
+
       @strategy = @agent_strategy.new
+      @agents.each do |agent|
+        return_agent agent, agent.presence
+      end
+
+      @agent_strategy
+    end
+
+    def connection_type=(new_connection_type)
+      raise InvalidConnectionType unless CONNECTION_TYPES.include? new_connection_type
+      @connection_type = new_connection_type
+    end
+
+    def agent_return_method=(new_agent_return_method)
+      raise InvalidRequeueMethod unless AGENT_RETURN_METHODS.include? new_agent_return_method
+      @agent_return_method = new_agent_return_method
     end
 
     # Checks whether an agent is available to take a call
