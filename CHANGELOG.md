@@ -1,4 +1,5 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+  * Provide Electric Slide with a way to check if a queue with a given set of attributes is valid/can be instantiated before Electric Slide adds it to the supervision group. The supervisor will crash if its attempt to create the queue raises an exception.
   * Add support for changing queue attributes
     * API Breakage: Setting queue connection type to an invalid value will now raise an `ElectricSlide::CallQueue::InvalidConnectionType` exception instead of `ArgumentError`
     * API Breakage: Setting queue agent return method to an invalid value will now raise an `ElectricSlide::CallQueue::InvalidRequeueMethod` exception instead of `ArgumentError`

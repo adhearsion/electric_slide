@@ -44,6 +44,34 @@ class ElectricSlide
 
     attr_reader :agent_strategy, :connection_type, :agent_return_method
 
+    def self.valid_with?(attrs = {})
+      return false unless Hash === attrs
+
+      if agent_strategy = attrs[:agent_strategy]
+        begin
+          agent_strategy.new
+        rescue Exception
+          return false
+        end
+      end
+      if connection_type = attrs[:connection_type]
+        return false unless valid_connection_type? connection_type
+      end
+      if agent_return_method = attrs[:agent_return_method]
+        return false unless valid_agent_return_method? agent_return_method
+      end
+
+      true
+    end
+
+    def self.valid_connection_type?(connection_type)
+      CONNECTION_TYPES.include? connection_type
+    end
+
+    def self.valid_agent_return_method?(agent_return_method)
+      AGENT_RETURN_METHODS.include? agent_return_method
+    end
+
     def initialize(opts = {})
       @agents = []      # Needed to keep track of global list of agents
       @queue = []       # Calls waiting for an agent
@@ -74,12 +102,12 @@ class ElectricSlide
     end
 
     def connection_type=(new_connection_type)
-      raise InvalidConnectionType unless CONNECTION_TYPES.include? new_connection_type
+      abort InvalidConnectionType.new unless CallQueue.valid_connection_type? new_connection_type
       @connection_type = new_connection_type
     end
 
     def agent_return_method=(new_agent_return_method)
-      raise InvalidRequeueMethod unless AGENT_RETURN_METHODS.include? new_agent_return_method
+      abort InvalidRequeueMethod.new unless CallQueue.valid_agent_return_method? new_agent_return_method
       @agent_return_method = new_agent_return_method
     end
 

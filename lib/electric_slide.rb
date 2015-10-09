@@ -43,8 +43,12 @@ class ElectricSlide
 
   def self.create(name, queue_class = nil, *args)
     fail "Queue with name #{name} already exists!" if get_queue(name)
-    @supervisor.supervise_as name, (queue_class || CallQueue), *args
-    get_queue name
+
+    queue_class ||= CallQueue
+    if !queue_class.respond_to?(:valid_with?) || queue_class.valid_with?(*args)
+      @supervisor.supervise_as name, (queue_class || CallQueue), *args
+      get_queue name
+    end
   end
 
   def self.get_queue!(name)
