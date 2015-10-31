@@ -166,7 +166,7 @@ where `confirm!` is your logic for deciding if you want the call to be connected
 Credits
 -------
 
-Electric Slide Copyright 2013-2015 Adhearsion Foundation Inc.
+Electric Slide Copyright 2011-2015 Adhearsion Foundation Inc.
 See the LICENSE file for more information.
 
 Original Author [Ben Klang](https://github.com/bklang) - Mojo Lingo
