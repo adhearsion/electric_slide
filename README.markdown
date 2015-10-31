@@ -133,8 +133,10 @@ Custom Agent Behavior
 
 If you need custom functionality to occur whenever an Agent is selected to take a call, you can use the callbacks on the Agent object:
 
-* `on_connect`
-* `on_disconnect`
+* `on_connect`: Args: [Queue, Agent Call, Client Call] Called as the agent is being connected to the client call
+* `on_disconnect`: Args: [Queue, Agent Call, Client Call] Called after the agent is disconnected from the client for any reason (eg. hangup)
+* `connection_failed`: Args: [Queue, Agent Call, Client Call] Called when the agent fails to connect with the client for any reason (eg. no answer)
+* `presence_change`: Args: [Queue, Agent Call, New Presence] Called after the agent's presence changes
 
 Confirmation Controllers
 ------------------------
