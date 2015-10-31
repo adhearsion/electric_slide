@@ -162,3 +162,19 @@ call.join metadata[:caller] if confirm!
 ```
 
 where `confirm!` is your logic for deciding if you want the call to be connected or not. Hanging up during the confirmation controller or letting it finish without any action will result in the call being sent to the next agent.
+
+Credits
+-------
+
+Electric Slide Copyright 2013-2015 Adhearsion Foundation Inc.
+See the LICENSE file for more information.
+
+Original Author [Ben Klang](https://github.com/bklang) - Mojo Lingo
+
+Contributors:
+* [Ben Langfeld](https://github.com/benlangfeld) - Mojo Lingo
+* [Neil Decapia](https://github.com/neildecapia) - Mojo Lingo
+* [Lloyd Hughes](https://github.com/system123) - Teleforge
+* [Luca Pradovera](https://github.com/polysics) - Mojo Lingo
+
+Also thanks to [Power Home Remodeling Group](http://powerhrg.com), [Teleforge](http://teleforge.co.za), and Atlanta Game Adventures for sponsoring development.
