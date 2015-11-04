@@ -217,6 +217,8 @@ class ElectricSlide
     # @param [Agent] agent The {Agent} to be removed from the queue
     # @return [Agent, Nil] The Agent object if removed, Nil otherwise
     def remove_agent(agent)
+      agent.presence = :unavailable
+      agent.callback :presence_change, self, agent.call, agent.presence
       @strategy.delete agent
       @agents.delete agent
       logger.info "Removing agent #{agent} from the queue"

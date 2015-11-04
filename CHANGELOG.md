@@ -1,4 +1,5 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+  * Trigger an agent "presence change" callback when the agent is removed from the queue
   * Bugfix: Fix `NameError` exception when referencing namespaced constant `Adhearsion::Call::ExpiredError` in injected `Adhearsion::Call#active?` method
   * Provide Electric Slide with a way to check if a queue with a given set of attributes is valid/can be instantiated before Electric Slide adds it to the supervision group. The supervisor will crash if its attempt to create the queue raises an exception.
   * Add support for changing queue attributes

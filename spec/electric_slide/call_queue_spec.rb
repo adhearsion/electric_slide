@@ -334,6 +334,39 @@ describe ElectricSlide::CallQueue do
     end
   end
 
+  describe '#remove_agent' do
+    let(:queue) { ElectricSlide::CallQueue.new }
+    let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com', presence: :available) }
+
+    before do
+      queue.add_agent agent
+    end
+
+    it 'sets the agent presence to `:unavailable`' do
+      expect {
+        queue.remove_agent agent
+      }.to change(agent, :presence).from(:available).to(:unavailable)
+    end
+
+    it 'invokes the presence change callback' do
+      called = false
+      ElectricSlide::Agent.on_presence_change { |queue, agent_call, presence| called = true }
+      queue.remove_agent agent
+      expect(called).to be
+    end
+
+    it 'takes the agent out of the call rotation' do
+      expect {
+        queue.remove_agent agent
+      }.to change(queue, :checkout_agent).from(agent).to(nil)
+    end
+
+    it 'removes the agent from the queue' do
+      queue.remove_agent agent
+      expect(queue.get_agents).to_not include(agent)
+    end
+  end
+
   describe '#update' do
     let(:queue) {
       ElectricSlide::CallQueue.new(
