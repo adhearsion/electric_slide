@@ -18,6 +18,12 @@ describe ElectricSlide::Agent do
 
   subject {MyAgent.new options}
 
+  after do
+    [:connect_callback, :disconnect_callback, :connection_failed_callback, :presence_change_callback].each do |callback|
+      ElectricSlide::Agent.instance_variable_set "@#{callback}", nil
+    end
+  end
+
   it 'executes a connect callback' do
     expect(subject.callback(:connect)).to eql :bar
   end
@@ -31,6 +37,13 @@ describe ElectricSlide::Agent do
   end
 
   it 'executes a presence change callback' do
-    expect(subject.callback(:presence_change, nil, nil, nil)).to eql :bar
+    expect(subject.callback(:presence_change, nil, nil, nil, nil)).to eql :bar
+  end
+
+  it 'executes the presence change callback on state change' do
+    called = false
+    ElectricSlide::Agent.on_presence_change { |queue, agent_call, presence| called = true }
+    agent = ElectricSlide::Agent.new presence: :unavailable
+    agent.presence = :busy
   end
 end

@@ -132,7 +132,6 @@ class ElectricSlide
       agent = @strategy.checkout_agent
       if agent
         agent.presence = :on_call
-        agent.callback :presence_change, self, agent.call, agent.presence
       end
       agent
     end
@@ -165,6 +164,8 @@ class ElectricSlide
       abort ArgumentError.new("#add_agent called with nil object") if agent.nil?
       abort DuplicateAgentError.new("Agent is already in the queue") if get_agent(agent.id)
 
+      agent.queue = self
+
       case @connection_type
       when :call
         abort ArgumentError.new("Agent has no callable address") unless agent.address
@@ -175,7 +176,8 @@ class ElectricSlide
       logger.info "Adding agent #{agent} to the queue"
       @agents << agent
       @strategy << agent if agent.presence == :available
-      agent.callback :presence_change, self, agent.call, agent.presence
+      # Fake the presence callback since this is a new agent
+      agent.callback :presence_change, self, agent.call, agent.presence, :unavailable
 
       check_for_connections
     end
@@ -183,15 +185,14 @@ class ElectricSlide
     # Marks an agent as available to take a call. To be called after an agent completes a call
     # and is ready to take the next call.
     # @param [Agent] agent The {Agent} that is being returned to the queue
-    # @param [Symbol] status The {Agent}'s new status
+    # @param [Symbol] new_presence The {Agent}'s new presence
     # @param [String, Optional] address The {Agent}'s address. Only specified if it has changed
-    def return_agent(agent, status = :available, address = nil)
+    def return_agent(agent, new_presence = :available, address = nil)
       logger.debug "Returning #{agent} to the queue"
 
       return false unless get_agent(agent.id)
 
-      agent.presence = status
-      agent.callback :presence_change, self, agent.call, agent.presence
+      agent.presence = new_presence
       agent.address = address if address
 
       case agent.presence
@@ -218,7 +219,6 @@ class ElectricSlide
     # @return [Agent, Nil] The Agent object if removed, Nil otherwise
     def remove_agent(agent)
       agent.presence = :unavailable
-      agent.callback :presence_change, self, agent.call, agent.presence
       @strategy.delete agent
       @agents.delete agent
       logger.info "Removing agent #{agent} from the queue"
