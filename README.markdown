@@ -133,8 +133,10 @@ Custom Agent Behavior
 
 If you need custom functionality to occur whenever an Agent is selected to take a call, you can use the callbacks on the Agent object:
 
-* `on_connect`
-* `on_disconnect`
+* `on_connect`: Args: [Queue, Agent Call, Client Call] Called as the agent is being connected to the client call
+* `on_disconnect`: Args: [Queue, Agent Call, Client Call] Called after the agent is disconnected from the client for any reason (eg. hangup)
+* `connection_failed`: Args: [Queue, Agent Call, Client Call] Called when the agent fails to connect with the client for any reason (eg. no answer)
+* `presence_change`: Args: [Queue, Agent Call, New Presence] Called after the agent's presence changes
 
 Confirmation Controllers
 ------------------------
@@ -160,3 +162,19 @@ call.join metadata[:caller] if confirm!
 ```
 
 where `confirm!` is your logic for deciding if you want the call to be connected or not. Hanging up during the confirmation controller or letting it finish without any action will result in the call being sent to the next agent.
+
+Credits
+-------
+
+Electric Slide Copyright 2011-2015 Adhearsion Foundation Inc.
+See the LICENSE file for more information.
+
+Original Author [Ben Klang](https://github.com/bklang) - Mojo Lingo
+
+Contributors:
+* [Ben Langfeld](https://github.com/benlangfeld) - Mojo Lingo
+* [Neil Decapia](https://github.com/neildecapia) - Mojo Lingo
+* [Lloyd Hughes](https://github.com/system123) - Teleforge
+* [Luca Pradovera](https://github.com/polysics) - Mojo Lingo
+
+Also thanks to [Power Home Remodeling Group](http://powerhrg.com), [Teleforge](http://teleforge.co.za), and Atlanta Game Adventures for sponsoring development.
