@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   s.has_rdoc = true
   s.homepage = "http://github.com/adhearsion/electric_slide"
+  s.license = "MIT"
   s.require_paths = ["lib"]
   s.rubygems_version = "1.2.0"
   s.summary = "Automatic Call Distributor for Adhearsion"
