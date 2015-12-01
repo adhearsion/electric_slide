@@ -1,7 +1,7 @@
 Electric Slide - Simple Call Distribution for Adhearsion
 ====================================================================
 
-This library implements a simple FIFO (First-In, First-Out) call queue for Adhearsion.
+This library implements a simple call queue for Adhearsion.
 
 To ensure proper operation, a few things are assumed:
 
