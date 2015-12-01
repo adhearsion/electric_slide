@@ -6,36 +6,80 @@ describe ElectricSlide do
       ElectricSlide.shutdown_queue :fake
     end
 
-    let(:queue_class) { double :fake_queue_class }
-    let(:queue_inst)  { double :fake_queue_instance }
-
     it "should default to an ElectricSlide::CallQueue if one is not specified" do
       ElectricSlide.create :fake
-      expect { ElectricSlide.get_queue :fake }.to_not raise_error
+      expect(ElectricSlide.get_queue :fake).to be_a(ElectricSlide::CallQueue)
     end
 
     it "should start the queue upon registration" do
-      expect(queue_class).to receive(:work).once.and_return queue_inst
-      expect(queue_inst).to receive(:terminate).once
+      ElectricSlide.create :fake
+      expect(ElectricSlide.get_queue(:fake).alive?).to be true
+    end
+
+    it "should start a custom queue type" do
+      queue_class = Class.new(ElectricSlide::CallQueue)
       ElectricSlide.create :fake, queue_class
+      expect(ElectricSlide.get_queue(:fake).alive?).to be true
     end
 
     it "should preserve additional queue arguments" do
-      queue = double(:fake_queue)
-      expect(queue_class).to receive(:work).with(:foo, :bar, :baz).once.and_return queue_inst
-      expect(queue_inst).to receive(:terminate).once
-      ElectricSlide.create :fake, queue_class, :foo, :bar, :baz
+      ElectricSlide.create :fake, nil, agent_return_method: :manual
+      expect(ElectricSlide.get_queue(:fake).agent_return_method).to be(:manual)
     end
 
     it "should not allow a second queue to be created with the same name" do
       ElectricSlide.create :fake
-      expect { ElectricSlide.create :fake }.to raise_error
+      expect { ElectricSlide.create :fake }.to raise_error(StandardError)
     end
   end
 
-  it "should raise if attempting to work with a queue that doesn't exist" do
-    expect { ElectricSlide.get_queue!("does not exist!") }.to raise_error
-    expect { ElectricSlide.shutdown_queue("does not exist!") }.to raise_error
+  describe "shutting down a queue" do
+    before do
+      ElectricSlide.create :fooqueue
+      ElectricSlide.shutdown_queue :fooqueue
+    end
+
+    it "should make the queue inaccessible" do
+      expect(ElectricSlide.get_queue(:fooqueue)).to be_nil
+    end
+
+    context "more than once" do
+      it "should remain silent" do
+        expect {
+          ElectricSlide.shutdown_queue :fooqueue
+          ElectricSlide.shutdown_queue :fooqueue
+        }.not_to raise_error
+      end
+    end
   end
 
+  describe '::queues_by_name' do
+    before do
+      ElectricSlide.create :barbe
+      ElectricSlide.create :banana
+    end
+
+    after do
+      ElectricSlide.shutdown_queue :barbe
+      ElectricSlide.shutdown_queue :banana
+    end
+
+    it 'returns a hash of queues, with their names as keys' do
+      expect(ElectricSlide.queues_by_name).to eq({
+        barbe: ElectricSlide.get_queue(:barbe),
+        banana: ElectricSlide.get_queue(:banana)
+      })
+    end
+
+    context 'when there are no queues' do
+      before do
+        ElectricSlide.shutdown_queue :barbe
+        ElectricSlide.shutdown_queue :banana
+      end
+
+      it 'returns an empty hash' do
+        expect(ElectricSlide.queues_by_name).to eq({})
+      end
+    end
+  end
 end

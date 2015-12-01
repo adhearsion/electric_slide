@@ -20,7 +20,7 @@ class ElectricSlide
         { total: @free_agents.count }
       end
 
-      # Assigns the first available agent, marking the agent :busy
+      # Assigns the first available agent, marking the agent :on_call
       # @return {Agent}
       def checkout_agent
         @free_agents.shift

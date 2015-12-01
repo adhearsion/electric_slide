@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
 
   s.has_rdoc = true
   s.homepage = "http://github.com/adhearsion/electric_slide"
+  s.license = "MIT"
   s.require_paths = ["lib"]
   s.rubygems_version = "1.2.0"
   s.summary = "Automatic Call Distributor for Adhearsion"
@@ -25,7 +26,8 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'adhearsion'
   s.add_runtime_dependency 'countdownlatch'
   s.add_runtime_dependency 'activesupport'
-  s.add_development_dependency 'rspec', ['>= 2.5.0']
+  s.add_development_dependency 'rspec', ['~> 3.0']
+  s.add_development_dependency 'timecop'
   s.add_development_dependency 'ci_reporter'
   s.add_development_dependency 'guard'
   s.add_development_dependency 'guard-rspec'

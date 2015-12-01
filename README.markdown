@@ -1,7 +1,7 @@
 Electric Slide - Simple Call Distribution for Adhearsion
 ====================================================================
 
-This library implements a simple FIFO (First-In, First-Out) call queue for Adhearsion.
+This library implements a simple call queue for Adhearsion.
 
 To ensure proper operation, a few things are assumed:
 
@@ -63,7 +63,7 @@ end
 Adding an Agent to the Queue
 ----------------------------
 
-ElectricSlide expects to be given a objects that quack like an agent. You can use the built-in `ElectricSlide::Agent` class, or you can provide your own.
+ElectricSlide expects to be instances of the `ElectricSlide::Agent` class. This is designed to be extended with custom functionality when necessary.
 
 To add an agent who will receive calls whenever a call is enqueued, do something like this:
 
@@ -72,7 +72,7 @@ agent = ElectricSlide::Agent.new id: 1, address: 'sip:agent1@example.com', prese
 ElectricSlide.get_queue(:my_queue).add_agent agent
 ```
 
-To inform the queue that the agent is no longer available you *must* use the ElectricSlide queue interface. /Do not attempt to alter agent objects directly!/
+To inform the queue that the agent is no longer available you *must* use the ElectricSlide queue interface. **_Do not attempt to change agent objects directly!_**
 
 ```ruby
 ElectricSlide.update_agent 1, presence: offline
@@ -84,11 +84,20 @@ If it is more convenient, you may also pass `#update_agent` an Agent-like object
 options = {
   id: 1,
   address: 'sip:agent1@example.com',
-  presence: offline
+  presence: :unavailable
 }
 agent = ElectricSlide::Agent.new options
 ElectricSlide.update_agent 1, agent
 ```
+
+The possible presence states for an Agent are:
+
+* `:available` - Waiting for a call
+* `:on_call` - Currently connected to a call
+* `:after_call` - In a quiet period after completing a call and before being made available again. This is only encountered with a manual agent return strategy.
+* `:unavailable` - Agent is not available (on break, offline, etc)
+
+Note that an `:unavailable` agent still counts as an agent in the queue, but will not be sent any calls. Make sure to remove agents, even unavailable ones, when agents sign out by using the `#remove_agent` method.
 
 Switching connection types
 --------------------------
@@ -124,8 +133,10 @@ Custom Agent Behavior
 
 If you need custom functionality to occur whenever an Agent is selected to take a call, you can use the callbacks on the Agent object:
 
-* `on_connect`
-* `on_disconnect`
+* `on_connect`: Args: [Queue, Agent Call, Client Call] Called as the agent is being connected to the client call
+* `on_disconnect`: Args: [Queue, Agent Call, Client Call] Called after the agent is disconnected from the client for any reason (eg. hangup)
+* `connection_failed`: Args: [Queue, Agent Call, Client Call] Called when the agent fails to connect with the client for any reason (eg. no answer)
+* `presence_change`: Args: [Queue, Agent Call, New Presence] Called after the agent's presence changes
 
 Confirmation Controllers
 ------------------------
@@ -151,3 +162,19 @@ call.join metadata[:caller] if confirm!
 ```
 
 where `confirm!` is your logic for deciding if you want the call to be connected or not. Hanging up during the confirmation controller or letting it finish without any action will result in the call being sent to the next agent.
+
+Credits
+-------
+
+Electric Slide Copyright 2011-2015 Adhearsion Foundation Inc.
+See the LICENSE file for more information.
+
+Original Author [Ben Klang](https://github.com/bklang) - Mojo Lingo
+
+Contributors:
+* [Ben Langfeld](https://github.com/benlangfeld) - Mojo Lingo
+* [Neil Decapia](https://github.com/neildecapia) - Mojo Lingo
+* [Lloyd Hughes](https://github.com/system123) - Teleforge
+* [Luca Pradovera](https://github.com/polysics) - Mojo Lingo
+
+Also thanks to [Power Home Remodeling Group](http://powerhrg.com), [Teleforge](http://teleforge.co.za), and Atlanta Game Adventures for sponsoring development.

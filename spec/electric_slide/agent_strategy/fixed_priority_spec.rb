@@ -5,11 +5,10 @@ require 'electric_slide/agent_strategy/fixed_priority'
 require 'ostruct'
 
 describe ElectricSlide::AgentStrategy::FixedPriority do
-  let(:subject) { ElectricSlide::AgentStrategy::FixedPriority.new }
   it 'should allow adding an agent with a specified priority' do
-    subject.agent_available?.should be false
+    expect(subject.agent_available?).to be false
     subject << OpenStruct.new({ id: 101, priority: 1 })
-    subject.agent_available?.should be true
+    expect(subject.agent_available?).to be true
   end
 
   it 'should allow adding multiple agents at the same priority' do
@@ -17,7 +16,7 @@ describe ElectricSlide::AgentStrategy::FixedPriority do
     agent2 = OpenStruct.new({ id: 102, priority: 2 })
     subject << agent1
     subject << agent2
-    subject.checkout_agent.should == agent1
+    expect(subject.checkout_agent).to eql(agent1)
   end
 
   it 'should return all agents of a higher priority before returning an agent of a lower priority' do
@@ -27,9 +26,9 @@ describe ElectricSlide::AgentStrategy::FixedPriority do
     subject << agent1
     subject << agent2
     subject << agent3
-    subject.checkout_agent.should == agent1
-    subject.checkout_agent.should == agent2
-    subject.checkout_agent.should == agent3
+    expect(subject.checkout_agent).to eql(agent1)
+    expect(subject.checkout_agent).to eql(agent2)
+    expect(subject.checkout_agent).to eql(agent3)
   end
 
   it 'should detect an agent available if one is available at any priority' do
@@ -38,6 +37,6 @@ describe ElectricSlide::AgentStrategy::FixedPriority do
     subject << agent1
     subject << agent2
     subject.checkout_agent
-    subject.agent_available?.should == true
+    expect(subject.agent_available?).to be true
   end
 end
