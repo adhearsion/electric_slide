@@ -179,7 +179,7 @@ class ElectricSlide
       # Fake the presence callback since this is a new agent
       agent.callback :presence_change, self, agent.call, agent.presence, :unavailable
 
-      check_for_connections
+      async.check_for_connections
     end
 
     # Marks an agent as available to take a call. To be called after an agent completes a call
