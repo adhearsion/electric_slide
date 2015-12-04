@@ -264,7 +264,15 @@ describe ElectricSlide::CallQueue do
       }.to change(queue, :checkout_agent).from(nil).to(agent)
     end
 
-    it "connects the agent to waiting queued calls"
+    it "connects the agent to waiting queued calls" do
+      call = Adhearsion::OutboundCall.new
+      queue.enqueue call
+
+      queue.add_agent agent
+      sleep 0.5
+      expect(agent.presence).to eq(:on_call)
+      expect(call[:agent]).to eq(agent)
+    end
 
     context 'when given an agent already in the queue' do
       before do
