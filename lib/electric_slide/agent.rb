@@ -2,7 +2,7 @@
 
 class ElectricSlide
   class Agent
-    attr_accessor :id, :address, :presence, :call, :queue
+    attr_accessor :id, :address, :presence, :call, :queue, :removed_by
 
     # @param [Hash] opts Agent parameters
     # @option opts [String] :id The Agent's ID
@@ -17,7 +17,7 @@ class ElectricSlide
     def presence=(new_presence)
       old_presence = @presence
       @presence = new_presence
-      callback :presence_change, queue, @call, new_presence, old_presence
+      callback :presence_change, queue, @call, new_presence, old_presence, removed_by
     end
 
     def callback(type, *args)

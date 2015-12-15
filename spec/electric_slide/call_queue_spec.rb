@@ -360,7 +360,7 @@ describe ElectricSlide::CallQueue do
       called = false
       ElectricSlide::Agent.on_presence_change { |queue, agent_call, presence| called = true }
       queue.remove_agent agent
-      expect(called).to be
+      expect(called).to be_truthy
     end
 
     it 'takes the agent out of the call rotation' do
