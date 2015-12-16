@@ -2,7 +2,8 @@
 
 class ElectricSlide
   class Agent
-    attr_accessor :id, :address, :presence, :call, :queue
+    attr_accessor :id, :address, :call, :queue
+    attr_reader :presence
 
     # @param [Hash] opts Agent parameters
     # @option opts [String] :id The Agent's ID
