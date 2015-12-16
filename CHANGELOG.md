@@ -1,4 +1,5 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+  * Change `ElectricSlide::Agent` `#presence=` method name to `#update_presence`. It will also accept one more parameter called `extra_params`, a hash that holds application specific parameters that are passed to the presence change callback.
   * `ElectricSlide::CallQueue#add_agent` will no longer wait for a connection attempt to complete before returning
   * Trigger an agent "presence change" callback when the agent is removed from the queue
   * Bugfix: Fix `NameError` exception when referencing namespaced constant `Adhearsion::Call::ExpiredError` in injected `Adhearsion::Call#active?` method
