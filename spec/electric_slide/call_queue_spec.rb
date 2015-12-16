@@ -137,7 +137,7 @@ describe ElectricSlide::CallQueue do
               # prevent the agent from being returned to the queue so the queued
               # call isn't grabbed by the agent again, changing queued call state
               # before the example can check it
-              agent.presence = :unavailable
+              agent.update_presence(:unavailable)
             end
 
             it 'unsets the `:agent` call variable on the queued call' do
