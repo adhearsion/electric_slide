@@ -131,7 +131,7 @@ class ElectricSlide
     def checkout_agent
       agent = @strategy.checkout_agent
       if agent
-        agent.presence = :on_call
+        agent.update_presence(:on_call)
       end
       agent
     end
@@ -192,7 +192,7 @@ class ElectricSlide
 
       return false unless get_agent(agent.id)
 
-      agent.presence = new_presence
+      agent.update_presence(new_presence)
       agent.address = address if address
 
       case agent.presence
@@ -216,9 +216,10 @@ class ElectricSlide
 
     # Removes an agent from the queue entirely
     # @param [Agent] agent The {Agent} to be removed from the queue
+    # @param [Hash] extra_params Application specific extra params
     # @return [Agent, Nil] The Agent object if removed, Nil otherwise
-    def remove_agent(agent)
-      agent.presence = :unavailable
+    def remove_agent(agent, extra_params = {})
+      agent.update_presence(:unavailable, extra_params)
       @strategy.delete agent
       @agents.delete agent
       logger.info "Removing agent #{agent} from the queue"

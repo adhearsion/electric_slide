@@ -44,6 +44,23 @@ describe ElectricSlide::Agent do
     called = false
     ElectricSlide::Agent.on_presence_change { |queue, agent_call, presence| called = true }
     agent = ElectricSlide::Agent.new presence: :unavailable
-    agent.presence = :busy
+    agent.update_presence(:busy)
+
+    expect(called).to be_truthy
+  end
+
+  it 'sends `extra_params` and `old_presence` to the presence change callback' do
+    presence_change_attributes = []
+    ElectricSlide::Agent.on_presence_change do |*attrs|
+      presence_change_attributes = attrs
+    end
+
+    agent = ElectricSlide::Agent.new presence: :unavailable
+    agent.update_presence(:busy, triggered_by: 'auto')
+
+    queue, agent_call, presence, old_presence, extra_params = presence_change_attributes
+
+    expect(old_presence).to eq :unavailable
+    expect(extra_params[:triggered_by]).to eq 'auto'
   end
 end
