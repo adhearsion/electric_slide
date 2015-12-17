@@ -216,7 +216,7 @@ class ElectricSlide
 
     # Removes an agent from the queue entirely
     # @param [Agent] agent The {Agent} to be removed from the queue
-    # @param [extra_params] hash Application specific extra params
+    # @param [Hash] extra_params Application specific extra params
     # @return [Agent, Nil] The Agent object if removed, Nil otherwise
     def remove_agent(agent, extra_params = {})
       agent.update_presence(:unavailable, extra_params)
