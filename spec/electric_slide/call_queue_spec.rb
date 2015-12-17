@@ -137,7 +137,7 @@ describe ElectricSlide::CallQueue do
               # prevent the agent from being returned to the queue so the queued
               # call isn't grabbed by the agent again, changing queued call state
               # before the example can check it
-              agent.presence = :unavailable
+              agent.update_presence(:unavailable)
             end
 
             it 'unsets the `:agent` call variable on the queued call' do
@@ -264,7 +264,15 @@ describe ElectricSlide::CallQueue do
       }.to change(queue, :checkout_agent).from(nil).to(agent)
     end
 
-    it "connects the agent to waiting queued calls"
+    it "connects the agent to waiting queued calls" do
+      call = Adhearsion::OutboundCall.new
+      queue.enqueue call
+
+      queue.add_agent agent
+      sleep 0.5
+      expect(agent.presence).to eq(:on_call)
+      expect(call[:agent]).to eq(agent)
+    end
 
     context 'when given an agent already in the queue' do
       before do
@@ -352,7 +360,7 @@ describe ElectricSlide::CallQueue do
       called = false
       ElectricSlide::Agent.on_presence_change { |queue, agent_call, presence| called = true }
       queue.remove_agent agent
-      expect(called).to be
+      expect(called).to be_truthy
     end
 
     it 'takes the agent out of the call rotation' do
