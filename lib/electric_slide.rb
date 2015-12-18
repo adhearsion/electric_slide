@@ -48,7 +48,7 @@ class ElectricSlide
 
     queue_class ||= CallQueue
     if !queue_class.respond_to?(:valid_with?) || queue_class.valid_with?(*args)
-      @supervisor.supervise_as name, (queue_class || CallQueue), *args
+      @supervisor.supervise_as name, (queue_class || CallQueue), args: args
       get_queue name
     end
   end
