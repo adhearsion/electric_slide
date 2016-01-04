@@ -164,7 +164,7 @@ class ElectricSlide
       abort ArgumentError.new("#add_agent called with nil object") if agent.nil?
       abort DuplicateAgentError.new("Agent is already in the queue") if get_agent(agent.id)
 
-      agent.queue = self
+      agent.queue = current_actor
 
       case @connection_type
       when :call
@@ -177,7 +177,7 @@ class ElectricSlide
       @agents << agent
       @strategy << agent if agent.presence == :available
       # Fake the presence callback since this is a new agent
-      agent.callback :presence_change, self, agent.call, agent.presence, :unavailable
+      agent.callback :presence_change, current_actor, agent.call, agent.presence, :unavailable
 
       async.check_for_connections
     end
@@ -304,7 +304,7 @@ class ElectricSlide
       ignoring_ended_calls do
         if agent.call && agent.call.active?
           logger.warn "Dead call exception in #connect but agent call still alive, reinserting into queue"
-          agent.callback :connection_failed, self, agent.call, queued_call
+          agent.callback :connection_failed, current_actor, agent.call, queued_call
 
           return_agent agent
         end
@@ -367,8 +367,10 @@ class ElectricSlide
       # Stash the caller ID so we don't have to try to get it from a dead call object later
       queued_caller_id = remote_party queued_call
 
+      queue = current_actor
+
       # The call controller is actually run by #dial, here we skip joining if we do not have one
-      dial_options = agent.dial_options_for(self, queued_call)
+      dial_options = agent.dial_options_for(queue, queued_call)
       unless dial_options[:confirm]
         agent_call.on_answer { ignoring_ended_calls { agent_call.join queued_call.uri if queued_call.active? } }
       end
@@ -394,12 +396,12 @@ class ElectricSlide
 
         agent.call = nil
 
-        agent.callback :disconnect, self, agent_call, queued_call
+        agent.callback :disconnect, queue, agent_call, queued_call
 
         unless connected
           if queued_call.active?
             ignoring_ended_calls { priority_enqueue queued_call }
-            agent.callback :connection_failed, self, agent_call, queued_call
+            agent.callback :connection_failed, queue, agent_call, queued_call
 
             logger.warn "Call did not connect to agent! Agent #{agent.id} call ended with #{end_event.reason}; reinserting caller #{queued_caller_id} into queue"
           else
@@ -408,7 +410,7 @@ class ElectricSlide
         end
       end
 
-      agent.callback :connect, self, agent_call, queued_call
+      agent.callback :connect, queue, agent_call, queued_call
 
       agent_call.execute_controller_or_router_on_answer dial_options.delete(:confirm), dial_options.delete(:confirm_metadata)
 
@@ -420,8 +422,9 @@ class ElectricSlide
       queued_caller_id = remote_party queued_call
       agent.call[:queued_call] = queued_call
 
+      queue = current_actor
       agent.call.register_tmp_handler :event, Punchblock::Event::Unjoined do
-        agent.callback :disconnect, self, agent.call, queued_call
+        agent.callback :disconnect, queue, agent.call, queued_call
         ignoring_ended_calls { queued_call.hangup }
         ignoring_ended_calls { conditionally_return_agent agent if agent.call && agent.call.active? }
         agent.call[:queued_call] = nil if agent.call
@@ -431,13 +434,13 @@ class ElectricSlide
         queued_call[:electric_slide_connected_at] = event.timestamp
       end
 
-      agent.callback :connect, self, agent.call, queued_call
+      agent.callback :connect, current_actor, agent.call, queued_call
 
       agent.join queued_call if queued_call.active?
     rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
         if agent.call && agent.call.active?
-          agent.callback :connection_failed, self, agent.call, queued_call
+          agent.callback :connection_failed, current_actor, agent.call, queued_call
 
           logger.info "Caller #{queued_caller_id} failed to connect to Agent #{agent.id} due to caller hangup"
           conditionally_return_agent agent, :auto
@@ -458,7 +461,7 @@ class ElectricSlide
         abort ArgumentError.new("Agent has no active call") unless agent.call && agent.call.active?
         unless agent.call[:electric_slide_callback_set]
           agent.call[:electric_slide_callback_set] = true
-          queue = self
+          queue = current_actor
           agent.call.on_end do
             agent.call = nil
             queue.return_agent agent, :unavailable

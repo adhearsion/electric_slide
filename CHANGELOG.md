@@ -1,5 +1,8 @@
 # [develop](https://github.com/adhearsion/electric_slide)
 
+# [0.4.1](https://github.com/adhearsion/electric_slide/compare/v0.4.0...v0.4.1) - [2016-01-04](https://rubygems.org/gems/adhearsion/versions/0.4.1)
+  * Bugfix: Don't hand out internal CallQueue references to Agents - thread-safety
+
 # [0.4.0](https://github.com/adhearsion/electric_slide/compare/v0.3.0...v0.4.0) - [2015-12-17](https://rubygems.org/gems/adhearsion/versions/0.4.0)
   * Change `ElectricSlide::Agent` `#presence=` method name to `#update_presence`. It will also accept one more parameter called `extra_params`, a hash that holds application specific parameters that are passed to the presence change callback.
   * `ElectricSlide::CallQueue#add_agent` will no longer wait for a connection attempt to complete before returning
