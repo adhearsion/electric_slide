@@ -23,9 +23,9 @@ describe ElectricSlide::AgentStrategy::FixedPriority do
     agent1 = OpenStruct.new({ id: 101, priority: 2 })
     agent2 = OpenStruct.new({ id: 102, priority: 2 })
     agent3 = OpenStruct.new({ id: 103, priority: 3 })
+    subject << agent3
     subject << agent1
     subject << agent2
-    subject << agent3
     expect(subject.checkout_agent).to eql(agent1)
     expect(subject.checkout_agent).to eql(agent2)
     expect(subject.checkout_agent).to eql(agent3)
