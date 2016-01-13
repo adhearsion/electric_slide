@@ -30,7 +30,8 @@ class ElectricSlide
       end
 
       def checkout_agent
-        _, agents = @priorities.detect do |priority, agents|
+        priorities = @priorities.sort.to_h
+        _, agents = priorities.detect do |priority, agents|
           agents.present?
         end
         agents.shift
