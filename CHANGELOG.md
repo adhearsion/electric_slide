@@ -1,6 +1,7 @@
 # [develop](https://github.com/adhearsion/electric_slide)
 
-* Bugfix: FixedPriority now correctly checks out agents in priority order.
+# [0.4.2](https://github.com/adhearsion/electric_slide/compare/v0.4.1...v0.4.2) - [2016-02-04](https://rubygems.org/gems/adhearsion/versions/0.4.2)
+  * Bugfix: FixedPriority now correctly checks out agents in priority order.
 
 # [0.4.1](https://github.com/adhearsion/electric_slide/compare/v0.4.0...v0.4.1) - [2016-01-04](https://rubygems.org/gems/adhearsion/versions/0.4.1)
   * Bugfix: Don't hand out internal CallQueue references to Agents - thread-safety
