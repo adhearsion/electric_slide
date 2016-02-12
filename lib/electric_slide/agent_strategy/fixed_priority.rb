@@ -37,11 +37,15 @@ class ElectricSlide
       end
 
       def <<(agent)
-        # TODO: How aggressively do we check for agents duplicated in multiple priorities?
         raise ArgumentError, "Agents must have a specified priority" unless agent.respond_to?(:priority)
+
         priority = agent.priority || 999999
         @priorities[priority] ||= []
-        @priorities[priority] << agent unless @priorities[priority].include? agent
+
+        unless @priorities[priority].include?(agent)
+          delete(agent)
+          @priorities[priority] << agent
+        end
       end
 
       def delete(agent)

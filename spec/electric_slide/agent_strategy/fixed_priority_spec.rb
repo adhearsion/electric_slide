@@ -39,4 +39,25 @@ describe ElectricSlide::AgentStrategy::FixedPriority do
     subject.checkout_agent
     expect(subject.agent_available?).to be true
   end
+
+  context 'when agents at different priorities are available' do
+    let(:agent1) { agent1 = OpenStruct.new(id: 101, priority: 1) }
+    let(:agent2) { agent1 = OpenStruct.new(id: 102, priority: 2) }
+
+    before do
+      subject << agent1
+      subject << agent2
+    end
+
+    describe 'and the higher priority agent is added again, but at the lowest priority' do
+      before do
+        agent1.priority = 3
+        subject << agent1
+      end
+
+      it 'moves the agent to the new, lower priority' do
+        expect(subject.checkout_agent).to eq(agent2)
+      end
+    end
+  end
 end
