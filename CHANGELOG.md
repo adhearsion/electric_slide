@@ -1,4 +1,6 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+
+# [0.5.0](https://github.com/adhearsion/electric_slide/compare/v0.4.2...v0.5.0) - [2016-02-12](https://rubygems.org/gems/adhearsion/versions/0.5.0)
   * API Breakage: Fixed priority strategy now ensures that the same agent cannot be in multiple priorities
 
 # [0.4.2](https://github.com/adhearsion/electric_slide/compare/v0.4.1...v0.4.2) - [2016-02-04](https://rubygems.org/gems/adhearsion/versions/0.4.2)
