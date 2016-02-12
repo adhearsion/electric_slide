@@ -1,4 +1,5 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+  * API Breakage: Fixed priority strategy now ensures that the same agent cannot be in multiple priorities
 
 # [0.4.2](https://github.com/adhearsion/electric_slide/compare/v0.4.1...v0.4.2) - [2016-02-04](https://rubygems.org/gems/adhearsion/versions/0.4.2)
   * Bugfix: FixedPriority now correctly checks out agents in priority order.
