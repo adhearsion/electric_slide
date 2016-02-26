@@ -287,6 +287,54 @@ describe ElectricSlide::CallQueue do
     end
   end
 
+  describe '#update_agent' do
+    let(:queue) { ElectricSlide::CallQueue.new(connection_type: :call) }
+    let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com', presence: :on_call) }
+
+    before do
+      queue.add_agent(agent)
+    end
+
+    it 'updates the agent with the given attributes' do
+      expect {
+        queue.update_agent(agent, address: 'reagent@acme.com')
+      }.to change(agent, :address).from('agent@example.com').to('reagent@acme.com')
+    end
+
+    it 'returns the agent to the queue' do
+      expect(queue.wrapped_object).to receive(:return_agent).with(agent, :on_call)
+      queue.update_agent(agent, address: 'reagent@acme.com')
+    end
+
+    context 'when given a set of attributes that makes the agent unacceptable in the queue' do
+      it 'raises an error' do
+        expect {
+          queue.update_agent(agent, address: '')
+        }.to raise_error(ArgumentError, 'Agent has no callable address')
+      end
+
+      it "does not change the agent's attributes" do
+        expect { queue.update_agent(agent, address: '') }.to raise_error(ArgumentError)
+
+        expect(agent.id).to eq('1')
+        expect(agent.address).to eq('agent@example.com')
+        expect(agent.presence).to eq(:on_call)
+      end
+    end
+
+    context 'when given an agent not in the queue' do
+      before do
+        queue.remove_agent agent
+      end
+
+      it 'raises an error' do
+        expect {
+          queue.update_agent(agent, address: 'ghost@imf.com')
+        }.to raise_error(ElectricSlide::CallQueue::MissingAgentError, 'Agent is not in the queue')
+      end
+    end
+  end
+
   describe '#return_agent' do
     let(:queue) { ElectricSlide::CallQueue.new }
     let(:agent) { ElectricSlide::Agent.new(id: '1', address: 'agent@example.com', presence: :on_call) }

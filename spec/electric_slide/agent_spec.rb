@@ -63,4 +63,56 @@ describe ElectricSlide::Agent do
     expect(old_presence).to eq :unavailable
     expect(extra_params[:triggered_by]).to eq 'auto'
   end
+
+  describe '#update' do
+    it 'returns the agent' do
+      expect(subject.update).to eq(subject)
+    end
+
+    context 'when given a hash with an agent attribute as key' do
+      it "sets the corresponding agent's attribute to the given value" do
+        expect {
+          subject.update(address: '456@bar.net')
+        }.to change(subject, :address).from('123@foo.com').to('456@bar.net')
+      end
+    end
+
+    context 'when given an non-hash argument' do
+      it 'raises an error' do
+        expect {
+          subject.update(nil)
+        }.to raise_error(ArgumentError, 'Agent attributes must be a hash')
+      end
+    end
+
+    context 'when given a hash with a key that does not correspond to any agent attribute' do
+      it "raises an error" do
+        expect {
+          subject.update(blah: 1)
+        }.to raise_error(NoMethodError)
+      end
+    end
+  end
+
+  describe '#callable?' do
+    context 'when the agent has an address' do
+      before do
+        subject.address = 'Baker St.'
+      end
+
+      it 'returns `true`' do
+        expect(subject).to be_callable
+      end
+    end
+
+    context 'when the agent has no address' do
+      before do
+        subject.address = ''
+      end
+
+      it 'returns `false`' do
+        expect(subject).to_not be_callable
+      end
+    end
+  end
 end

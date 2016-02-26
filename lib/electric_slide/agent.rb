@@ -15,6 +15,22 @@ class ElectricSlide
       @presence = opts[:presence] || :available
     end
 
+    # Updates an agent instance's attributes.
+    # @param [Hash] opts Agent attributes
+    # @return {Agent}
+    def update(attrs = {})
+      unless Hash === attrs
+        raise ArgumentError.new('Agent attributes must be a hash')
+      end
+
+      attrs.each do |attr, value|
+        setter = "#{attr}="
+        send setter, value
+      end
+
+      self
+    end
+
     def update_presence(new_presence, extra_params = {})
       old_presence = @presence
       @presence = new_presence
@@ -67,6 +83,11 @@ class ElectricSlide
     # FIXME: Use delegator?
     def from
       @call.from
+    end
+
+    # Returns `true` if the agent can be called, i.e., has a contact address
+    def callable?
+      address.present?
     end
   end
 end
