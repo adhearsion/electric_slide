@@ -1,4 +1,7 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+  * Added `ElectricSlide::CallQueue#update_agent` to safely update a queued agent object's attributes
+  * Added `ElectricSlide::Agent#update` to update an agent object's attributes
+  * Added `ElectricSlide::Agent#callable?` to check if an agent can be called
 
 # [0.5.0](https://github.com/adhearsion/electric_slide/compare/v0.4.2...v0.5.0) - [2016-02-12](https://rubygems.org/gems/adhearsion/versions/0.5.0)
   * API Breakage: Fixed priority strategy now ensures that the same agent cannot be in multiple priorities
