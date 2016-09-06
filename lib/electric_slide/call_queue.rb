@@ -300,10 +300,6 @@ class ElectricSlide
       when :call
         call_agent agent, queued_call
       when :bridge
-        unless agent.call && agent.call.active?
-          logger.warn "Inactive agent call found in #connect, returning caller to queue"
-          priority_enqueue queued_call
-        end
         bridge_agent agent, queued_call
       end
     rescue *ENDED_CALL_EXCEPTIONS
@@ -430,6 +426,13 @@ class ElectricSlide
     end
 
     def bridge_agent(agent, queued_call)
+      unless agent.call && agent.call.active?
+        logger.warn "Inactive agent call found for Agent #{agent.id} while bridging. Logging out agent and returning caller to queue."
+        priority_enqueue queued_call
+        remove_agent agent
+        return
+      end
+
       # Stash caller ID to make log messages work even if calls end
       queued_caller_id = remote_party queued_call
       agent.call[:queued_call] = queued_call
