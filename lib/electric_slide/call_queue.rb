@@ -288,7 +288,7 @@ class ElectricSlide
     # @param [Agent] agent Agent to be connected
     # @param [Adhearsion::Call] call Caller to be connected
     def connect(agent, queued_call)
-      unless queued_call.active?
+      unless queued_call && queued_call.active?
         logger.warn "Inactive queued call found in #connect"
         return_agent agent
       end
@@ -304,7 +304,7 @@ class ElectricSlide
       end
     rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
-        if queued_call.active?
+        if queued_call && queued_call.active?
           logger.warn "Dead call exception in #connect but queued_call still alive, reinserting into queue"
           priority_enqueue queued_call
         end
