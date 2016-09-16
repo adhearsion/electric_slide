@@ -291,6 +291,7 @@ class ElectricSlide
       unless queued_call && queued_call.active?
         logger.warn "Inactive queued call found in #connect"
         return_agent agent
+        return
       end
 
       queued_call[:agent] = agent
