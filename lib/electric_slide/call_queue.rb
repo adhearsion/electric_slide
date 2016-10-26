@@ -12,7 +12,7 @@ class ElectricSlide
       Adhearsion::Call::ExpiredError,
       Adhearsion::Call::CommandTimeout,
       Celluloid::DeadActorError,
-      Punchblock::ProtocolError
+      Adhearsion::ProtocolError
     ]
 
     CONNECTION_TYPES = [
@@ -394,7 +394,7 @@ class ElectricSlide
 
       # Track whether the agent actually talks to the queued_call
       connected = false
-      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
+      queued_call.register_tmp_handler :event, Adhearsion::Event::Joined do |event|
         connected = true
         queued_call[:electric_slide_connected_at] = event.timestamp
       end
@@ -439,14 +439,14 @@ class ElectricSlide
       agent.call[:queued_call] = queued_call
 
       queue = current_actor
-      agent.call.register_tmp_handler :event, Punchblock::Event::Unjoined do
+      agent.call.register_tmp_handler :event, Adhearsion::Event::Unjoined do
         agent.callback :disconnect, queue, agent.call, queued_call
         ignoring_ended_calls { queued_call.hangup }
         ignoring_ended_calls { conditionally_return_agent agent if agent.call && agent.call.active? }
         agent.call[:queued_call] = nil if agent.call
       end
 
-      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
+      queued_call.register_tmp_handler :event, Adhearsion::Event::Joined do |event|
         queued_call[:electric_slide_connected_at] = event.timestamp
       end
 

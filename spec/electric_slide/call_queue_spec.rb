@@ -31,7 +31,7 @@ describe ElectricSlide::CallQueue do
     it "should remove a caller who abandons the queue" do
       queue.enqueue call_a
       queue.enqueue call_b
-      call_a << Punchblock::Event::End.new(reason: :hangup)
+      call_a << Adhearsion::Event::End.new(reason: :hangup)
       expect(queue.get_next_caller).to be call_b
     end
 
@@ -97,7 +97,7 @@ describe ElectricSlide::CallQueue do
 
         it "unsets the agent's `call` attribute" do
           expect {
-            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            agent_call << Adhearsion::Event::End.new(reason: :hangup)
           }.to change(agent, :call).from(agent_call).to(nil)
         end
 
@@ -105,12 +105,12 @@ describe ElectricSlide::CallQueue do
           let(:agent_return_method) { :auto }
 
           it "makes the agent available for a call" do
-            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            agent_call << Adhearsion::Event::End.new(reason: :hangup)
             expect(queue.checkout_agent).to eql(agent)
           end
 
           it "sets the agent's presence to :available" do
-            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            agent_call << Adhearsion::Event::End.new(reason: :hangup)
             expect(queue.get_agent(agent.id).presence).to eql(:available)
           end
         end
@@ -119,12 +119,12 @@ describe ElectricSlide::CallQueue do
           let(:agent_return_method) { :manual }
 
           it "does not make the agent available for a call" do
-            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            agent_call << Adhearsion::Event::End.new(reason: :hangup)
             expect(queue.checkout_agent).to eql(nil)
           end
 
           it "sets the agent's presence to :after_call" do
-            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            agent_call << Adhearsion::Event::End.new(reason: :hangup)
             expect(queue.get_agent(agent.id).presence).to eql(:after_call)
           end
         end
@@ -142,7 +142,7 @@ describe ElectricSlide::CallQueue do
 
             it 'unsets the `:agent` call variable on the queued call' do
               expect {
-                agent_call << Punchblock::Event::End.new(reason: :hangup)
+                agent_call << Adhearsion::Event::End.new(reason: :hangup)
               }.to change{ queued_call[:agent] }.from(agent).to(nil)
             end
           end
@@ -158,7 +158,7 @@ describe ElectricSlide::CallQueue do
           it "invokes the presence change callback" do
             called = false
             ElectricSlide::Agent.on_presence_change { |queue, agent_call, presence| called = true }
-            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            agent_call << Adhearsion::Event::End.new(reason: :hangup)
             expect(called).to be true
           end
         end
@@ -166,8 +166,8 @@ describe ElectricSlide::CallQueue do
 
       context "when the agent's and caller's calls are joined" do
         before do
-          queued_call << Punchblock::Event::Joined.new(timestamp: connected_time)
-          agent_call << Punchblock::Event::Joined.new(timestamp: connected_time)
+          queued_call << Adhearsion::Event::Joined.new(timestamp: connected_time)
+          agent_call << Adhearsion::Event::Joined.new(timestamp: connected_time)
         end
 
         it "records the connection time in the :electric_slide_connected_at call variable on the queued call" do
@@ -186,8 +186,8 @@ describe ElectricSlide::CallQueue do
         queue.add_agent agent
 
         allow(agent_call).to receive(:join) do
-          agent_call << Punchblock::Event::Joined.new(timestamp: connected_time)
-          queued_call << Punchblock::Event::Joined.new(timestamp: connected_time)
+          agent_call << Adhearsion::Event::Joined.new(timestamp: connected_time)
+          queued_call << Adhearsion::Event::Joined.new(timestamp: connected_time)
         end
         queue.enqueue queued_call
       end
@@ -203,13 +203,13 @@ describe ElectricSlide::CallQueue do
       context 'when the call ends' do
         it "unsets the agent's `call` attribute" do
           expect {
-            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            agent_call << Adhearsion::Event::End.new(reason: :hangup)
           }.to change(agent, :call).from(agent_call).to(nil)
         end
 
         it "marks the agent :unavailable" do
           expect {
-            agent_call << Punchblock::Event::End.new(reason: :hangup)
+            agent_call << Adhearsion::Event::End.new(reason: :hangup)
           }.to change(agent, :presence).from(:on_call).to(:unavailable)
         end
 
@@ -217,12 +217,12 @@ describe ElectricSlide::CallQueue do
           let(:agent_return_method) { :auto }
 
           it "makes the agent available for a call" do
-            agent_call << Punchblock::Event::Unjoined.new
+            agent_call << Adhearsion::Event::Unjoined.new
             expect(queue.checkout_agent).to eql(agent)
           end
 
           it "sets the agent's presence to :available" do
-            agent_call << Punchblock::Event::Unjoined.new
+            agent_call << Adhearsion::Event::Unjoined.new
             expect(queue.get_agent(agent.id).presence).to eql(:available)
           end
         end
@@ -231,12 +231,12 @@ describe ElectricSlide::CallQueue do
           let(:agent_return_method) { :manual }
 
           it "does not make the agent available for a call" do
-            agent_call << Punchblock::Event::Unjoined.new
+            agent_call << Adhearsion::Event::Unjoined.new
             expect(queue.checkout_agent).to eql(nil)
           end
 
           it "sets the agent's presence to :after_call" do
-            agent_call << Punchblock::Event::Unjoined.new
+            agent_call << Adhearsion::Event::Unjoined.new
             expect(queue.get_agent(agent.id).presence).to eql(:after_call)
           end
         end
