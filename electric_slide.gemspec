@@ -34,5 +34,9 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'simplecov-rcov'
 
+  # These two are needed to keep compatibility with Ruby >= 2.2.0, <= 2.2.3
+  s.add_development_dependency 'ruby_dep', ['= 1.3.1']
+  s.add_development_dependency 'listen', ['<= 3.1.1']
+
   s.specification_version = 2
 end
