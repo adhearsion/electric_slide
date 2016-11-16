@@ -451,10 +451,10 @@ class ElectricSlide
       end
 
       queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
+        agent.callback :connect, current_actor, agent.call, queued_call
+        
         queued_call[:electric_slide_connected_at] = event.timestamp
       end
-
-      agent.callback :connect, current_actor, agent.call, queued_call
 
       agent.join queued_call if queued_call.active?
     rescue *ENDED_CALL_EXCEPTIONS
