@@ -450,13 +450,13 @@ class ElectricSlide
         agent.call[:queued_call] = nil if agent.call
       end
 
-      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
-        agent.callback :connect, current_actor, agent.call, queued_call
-        
+      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|      
         queued_call[:electric_slide_connected_at] = event.timestamp
       end
 
       agent.join queued_call if queued_call.active?
+      agent.callback :connect, current_actor, agent.call, queued_call
+
     rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
         if agent.call && agent.call.active?
