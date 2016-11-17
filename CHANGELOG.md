@@ -1,4 +1,5 @@
 # [develop](https://github.com/adhearsion/electric_slide)
+  * Bugfix: Prevent nil objects in the call queue from crashing on connection
   * Added `ElectricSlide::CallQueue#update_agent` to safely update a queued agent object's attributes
   * Added `ElectricSlide::Agent#update` to update an agent object's attributes
   * Added `ElectricSlide::Agent#callable?` to check if an agent can be called

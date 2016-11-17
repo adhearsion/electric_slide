@@ -241,6 +241,8 @@ class ElectricSlide
     # Checks to see if any callers are waiting for an agent and attempts to connect them to
     # an available agent
     def check_for_connections
+      # Ensure there are no nil objects in the call queue before trying to connect
+      @queue.compact!
       connect checkout_agent, get_next_caller while call_waiting? && agent_available?
     end
 
@@ -290,6 +292,8 @@ class ElectricSlide
     def connect(agent, queued_call)
       unless queued_call && queued_call.active?
         logger.warn "Inactive queued call found in #connect"
+        agent.callback :connection_failed, current_actor, agent.call, queued_call 
+
         return_agent agent
         return
       end
@@ -446,13 +450,13 @@ class ElectricSlide
         agent.call[:queued_call] = nil if agent.call
       end
 
-      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|
+      queued_call.register_tmp_handler :event, Punchblock::Event::Joined do |event|      
         queued_call[:electric_slide_connected_at] = event.timestamp
       end
 
+      agent.join queued_call if queued_call.active?
       agent.callback :connect, current_actor, agent.call, queued_call
 
-      agent.join queued_call if queued_call.active?
     rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
         if agent.call && agent.call.active?
