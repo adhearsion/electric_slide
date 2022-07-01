@@ -212,7 +212,9 @@ class ElectricSlide
         bridged_agent_health_check agent
 
         @strategy << agent
+        old_call = agent.call
         check_for_connections
+        agent.call = nil if agent.call == old_call
       when :unavailable
         @strategy.delete agent
       end
@@ -402,8 +404,6 @@ class ElectricSlide
       agent_call.on_end do |end_event|
         # Ensure we don't return an agent that was removed or paused
         conditionally_return_agent agent
-
-        agent.call = nil
 
         agent.callback :disconnect, queue, agent_call, queued_call
 

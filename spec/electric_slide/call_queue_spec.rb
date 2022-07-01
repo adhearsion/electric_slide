@@ -54,6 +54,7 @@ describe ElectricSlide::CallQueue do
     let(:agent_id) { '123' }
     let(:agent) { ElectricSlide::Agent.new id: agent_id, address: '123', presence: :available }
     let!(:agent_call) { Adhearsion::OutboundCall.new }
+    let!(:new_agent_call) { Adhearsion::OutboundCall.new }
     let(:queued_call) { dummy_call }
     let(:connected_time) { DateTime.now }
 
@@ -71,6 +72,7 @@ describe ElectricSlide::CallQueue do
 
       before do
         allow(agent_call).to receive(:dial)
+        allow(new_agent_call).to receive(:dial)
         queue.add_agent agent
         queue.enqueue queued_call
       end
@@ -99,6 +101,16 @@ describe ElectricSlide::CallQueue do
           expect {
             agent_call << Punchblock::Event::End.new(reason: :hangup)
           }.to change(agent, :call).from(agent_call).to(nil)
+        end
+
+        it "does not unsets the agent's `call` attribute when the agent connects to another call" do
+          queue.remove_agent double_agent # We only want one agent in the queue so they get the next call
+          allow(Adhearsion::OutboundCall).to receive(:new) { new_agent_call }
+          queue.enqueue dummy_call # We want another call to be waiting after this call
+
+          expect {
+            agent_call << Punchblock::Event::End.new(reason: :hangup)
+          }.to change(agent, :call).from(agent_call).to(new_agent_call)
         end
 
         context "when the return strategy is :auto" do
