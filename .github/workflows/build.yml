@@ -1,0 +1,15 @@
+name: build
+on:
+    - push
+    - pull_request
+jobs:
+  build:
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ruby/setup-ruby
+        with:
+          ruby-version: '2.3.0'
+      - name: Install dependences
+      - run: bundle install
+      - name: Create build
+      - run: bundle exec rake
