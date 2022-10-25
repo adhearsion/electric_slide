@@ -4,12 +4,18 @@ on:
     - pull_request
 jobs:
   build:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: ruby/setup-ruby
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Ruby
+        uses: ruby/setup-ruby
         with:
           ruby-version: '2.3.0'
+          bundler-cache: true
       - name: Install dependences
-      - run: bundle install
+        run: bundle install
       - name: Create build
-      - run: bundle exec rake
+        run: bundle exec build
+      - name: Run Specs
+        run: bundle exec spec
