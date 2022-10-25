@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.rubygems_version = "1.2.0"
   s.summary = "Automatic Call Distributor for Adhearsion"
 
-  s.add_runtime_dependency 'adhearsion'
+  s.add_runtime_dependency 'adhearsion', ['~> 2.4']
   s.add_runtime_dependency 'countdownlatch'
   s.add_runtime_dependency 'activesupport'
   s.add_development_dependency 'rspec', ['~> 3.0']
