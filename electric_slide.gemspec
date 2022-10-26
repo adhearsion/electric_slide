@@ -24,7 +24,6 @@ Gem::Specification.new do |s|
   s.summary = "Automatic Call Distributor for Adhearsion"
 
   s.add_runtime_dependency 'adhearsion', ['>= 2.5.0', '< 3.0.0']
-  s.add_runtime_dependency 'celluloid'
   s.add_runtime_dependency 'countdownlatch'
   s.add_runtime_dependency 'activesupport', ['<= 3.2.13']
   s.add_development_dependency 'rspec', ['~> 3.0']
