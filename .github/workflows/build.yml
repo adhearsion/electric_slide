@@ -20,7 +20,7 @@ jobs:
           bundler-cache: true
 
       - name: Create build
-        run: bundle exec build
+        run: bundle exec rake build
 
       - name: Run Specs
-        run: bundle exec spec
+        run: bundle exec rake spec
