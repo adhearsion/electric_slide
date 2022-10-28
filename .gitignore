@@ -1,3 +1,4 @@
 *.swp
 Gemfile.lock
 pkg
+.tool-versions
