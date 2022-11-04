@@ -401,9 +401,9 @@ class ElectricSlide
 
       agent_call.on_end do |end_event|
         # Ensure we don't return an agent that was removed or paused
+        old_call = agent.call
         conditionally_return_agent agent
-
-        agent.call = nil
+        agent.call = nil if agent_return_method == :manual || agent.call == old_call 
 
         agent.callback :disconnect, queue, agent_call, queued_call
 
