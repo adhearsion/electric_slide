@@ -165,13 +165,7 @@ class ElectricSlide
       abort DuplicateAgentError.new("Agent is already in the queue") if get_agent(agent.id)
 
       agent.queue = current_actor
-
-      case @connection_type
-      when :call
-        abort ArgumentError.new("Agent has no callable address") unless agent.address
-      when :bridge
-        bridged_agent_health_check agent
-      end
+      accept_agent! agent
 
       logger.info "Adding agent #{agent} to the queue"
       @agents << agent
@@ -180,6 +174,24 @@ class ElectricSlide
       agent.callback :presence_change, current_actor, agent.call, agent.presence, :unavailable
 
       async.check_for_connections
+    end
+
+    # Updates a queued agent's attributes
+    def update_agent(agent, agent_attrs)
+      abort ArgumentError.new('Agent must not be `nil`') unless agent
+      unless get_agent(agent.id)
+        abort MissingAgentError.new('Agent is not in the queue')
+      end
+
+      # check if the agent is allowed to have the given set of attributes using
+      # a dupe, to preserve the state of the original in case of failure
+      agent.dup.tap do |double_agent|
+        double_agent.update agent_attrs
+        accept_agent! double_agent
+      end
+
+      agent.update agent_attrs
+      return_agent agent, agent.presence
     end
 
     # Marks an agent as available to take a call. To be called after an agent completes a call
@@ -276,9 +288,10 @@ class ElectricSlide
     # @param [Agent] agent Agent to be connected
     # @param [Adhearsion::Call] call Caller to be connected
     def connect(agent, queued_call)
-      unless queued_call.active?
+      unless queued_call && queued_call.active?
         logger.warn "Inactive queued call found in #connect"
         return_agent agent
+        return
       end
 
       queued_call[:agent] = agent
@@ -288,15 +301,11 @@ class ElectricSlide
       when :call
         call_agent agent, queued_call
       when :bridge
-        unless agent.call && agent.call.active?
-          logger.warn "Inactive agent call found in #connect, returning caller to queue"
-          priority_enqueue queued_call
-        end
         bridge_agent agent, queued_call
       end
     rescue *ENDED_CALL_EXCEPTIONS
       ignoring_ended_calls do
-        if queued_call.active?
+        if queued_call && queued_call.active?
           logger.warn "Dead call exception in #connect but queued_call still alive, reinserting into queue"
           priority_enqueue queued_call
         end
@@ -392,9 +401,9 @@ class ElectricSlide
 
       agent_call.on_end do |end_event|
         # Ensure we don't return an agent that was removed or paused
+        old_call = agent.call
         conditionally_return_agent agent
-
-        agent.call = nil
+        agent.call = nil if agent_return_method == :manual || agent.call == old_call 
 
         agent.callback :disconnect, queue, agent_call, queued_call
 
@@ -418,6 +427,13 @@ class ElectricSlide
     end
 
     def bridge_agent(agent, queued_call)
+      unless agent.call && agent.call.active?
+        logger.warn "Inactive agent call found for Agent #{agent.id} while bridging. Logging out agent and returning caller to queue."
+        priority_enqueue queued_call
+        remove_agent agent
+        return
+      end
+
       # Stash caller ID to make log messages work even if calls end
       queued_caller_id = remote_party queued_call
       agent.call[:queued_call] = queued_call
@@ -452,6 +468,17 @@ class ElectricSlide
           priority_enqueue queued_call
           logger.warn "Call failed to connect to Agent #{agent.id} due to agent hangup; reinserting caller #{queued_caller_id} into queue"
         end
+      end
+    end
+
+    def accept_agent!(agent)
+      case @connection_type
+      when :call
+        unless agent.callable?
+          abort ArgumentError.new('Agent has no callable address')
+        end
+      when :bridge
+        bridged_agent_health_check agent
       end
     end
 

@@ -23,9 +23,9 @@ Gem::Specification.new do |s|
   s.rubygems_version = "1.2.0"
   s.summary = "Automatic Call Distributor for Adhearsion"
 
-  s.add_runtime_dependency 'adhearsion'
+  s.add_runtime_dependency 'adhearsion', ['>= 2.5.0', '< 3.0.0']
   s.add_runtime_dependency 'countdownlatch'
-  s.add_runtime_dependency 'activesupport'
+  s.add_runtime_dependency 'activesupport', ['<= 3.2.13']
   s.add_development_dependency 'rspec', ['~> 3.0']
   s.add_development_dependency 'timecop'
   s.add_development_dependency 'ci_reporter'
@@ -33,6 +33,10 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'guard-rspec'
   s.add_development_dependency 'simplecov'
   s.add_development_dependency 'simplecov-rcov'
+
+  # These two are needed to keep compatibility with Ruby >= 2.2.0, <= 2.2.3
+  s.add_development_dependency 'ruby_dep', ['= 1.3.1']
+  s.add_development_dependency 'listen', ['<= 3.1.1']
 
   s.specification_version = 2
 end
